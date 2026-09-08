@@ -305,6 +305,119 @@
       font-weight: 700;
       margin-top: 14px;
     }
+
+    /* 랭킹 모달 & 리스트 스타일 */
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 48vh;
+      overflow-y: auto;
+      padding: 4px;
+      margin-bottom: 8px;
+    }
+    .ranking-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .ranking-list::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .ranking-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 10px 14px;
+      transition: all 0.2s ease;
+      gap: 8px;
+    }
+    .ranking-row.rank-top-1 {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-color: #f59e0b;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+    }
+    .ranking-row.rank-top-2 {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-color: #94a3b8;
+      box-shadow: 0 3px 10px rgba(148, 163, 184, 0.15);
+    }
+    .ranking-row.rank-top-3 {
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      border-color: #d97706;
+      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.15);
+    }
+    .ranking-row.highlighted-row {
+      animation: highlightGlow 1.2s infinite alternate;
+      border-width: 3px;
+    }
+    @keyframes highlightGlow {
+      from { transform: scale(1); box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+      to { transform: scale(1.02); box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+    }
+    .rank-pos {
+      width: 30px;
+      font-size: 15px;
+      font-weight: 900;
+      text-align: center;
+      color: #64748b;
+    }
+    .rank-badge-1 { font-size: 22px; color: #f59e0b; }
+    .rank-badge-2 { font-size: 20px; color: #64748b; }
+    .rank-badge-3 { font-size: 20px; color: #b45309; }
+    .rank-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1.5;
+      text-align: left;
+      overflow: hidden;
+    }
+    .rank-char-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .rank-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rank-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .rank-biome {
+      background: #e2e8f0;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+    }
+    .rank-coins {
+      color: #d97706;
+      font-weight: 800;
+    }
+    .rank-score {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      min-width: 50px;
+      text-align: right;
+    }
+    @keyframes pulseRank {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); }
+    }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -319,6 +432,10 @@
           <div id="score-display" class="val">0</div>
         </div>
         <div class="glass-card">
+          <div class="label">BEST</div>
+          <div id="high-score-display" class="val high-val">0</div>
+        </div>
+        <div class="glass-card">
           <div class="label">COINS</div>
           <div id="coin-display" class="val coin-val">0</div>
         </div>
@@ -326,9 +443,12 @@
           <span>🌲</span> <span id="biome-name">초원</span>
         </div>
       </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <button id="ranking-btn" class="btn-action">
+          🏆 랭킹
+        </button>
         <button id="char-select-btn" class="btn-action">
-          <span id="current-char-icon">🐔</span> 캐릭터 변경
+          <span id="current-char-icon">🐔</span> 캐릭터
         </button>
         <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 18px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
           🔊
@@ -352,11 +472,36 @@
     </div>
   </div>
 
+  <!-- 랭킹 모달 -->
+  <div id="ranking-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-title">🏆 명예의 전당</div>
+      <div class="modal-subtitle">최고 기록 TOP 10 랭킹</div>
+      <div id="ranking-list" class="ranking-list"></div>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button id="ranking-close-btn" class="btn-primary" style="flex:2;">닫기</button>
+        <button id="ranking-reset-btn" class="btn-action" style="flex:1; justify-content:center; color:#ef4444;">초기화</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 게임 오버 모달 -->
   <div id="game-over-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-title" style="color:#ef4444;">GAME OVER</div>
-      <div id="game-over-reason" class="modal-subtitle" style="margin-bottom:18px;">차량에 치였습니다!</div>
+      <div id="game-over-reason" class="modal-subtitle" style="margin-bottom:14px;">차량에 치였습니다!</div>
+
+      <!-- 신규 랭킹 진입 시 표시되는 입력창 -->
+      <div id="new-rank-section" style="display:none; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px dashed #f59e0b; border-radius: 20px; padding: 14px; margin-bottom: 16px; animation: pulseRank 1.2s infinite alternate;">
+        <div style="font-size: 14px; font-weight: 900; color: #b45309; margin-bottom: 8px;">
+          🎉 축하합니다! TOP 10 랭킹 <span id="new-rank-pos">#1위</span> 진입!
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+          <input type="text" id="player-nickname" maxlength="8" placeholder="닉네임 (최대 8자)" style="padding: 10px 12px; border: 2px solid #f59e0b; border-radius: 14px; font-size: 14px; font-weight: 800; width: 62%; outline: none; text-align: center; background:#ffffff;">
+          <button id="submit-rank-btn" class="btn-primary" style="padding: 10px 14px; font-size: 14px; width: auto; background: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">등록</button>
+        </div>
+      </div>
+
       <div class="modal-scores">
         <div class="modal-row">
           <span>최종 점수</span>
@@ -375,9 +520,10 @@
           <strong id="final-high-score" style="color:#f97316;">0</strong>
         </div>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button id="restart-btn" class="btn-primary" style="flex:2;">다시 도전</button>
+      <div style="display:flex; gap:8px;">
+        <button id="restart-btn" class="btn-primary" style="flex:1.8;">다시 도전</button>
         <button id="restart-char-btn" class="btn-action" style="flex:1; justify-content:center;">캐릭터</button>
+        <button id="restart-rank-btn" class="btn-action" style="flex:1; justify-content:center;">🏆 랭킹</button>
       </div>
       <div class="key-tag">Space 키 또는 화면 터치로 즉시 재시작</div>
     </div>
@@ -492,6 +638,29 @@
           osc.start(now);
           osc.stop(now + 0.1);
         }
+      }
+
+      playFanfare() {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 523.25, d: 0.12, t: 0.0 },   // C5
+          { f: 659.25, d: 0.12, t: 0.12 },  // E5
+          { f: 783.99, d: 0.14, t: 0.24 },  // G5
+          { f: 1046.50, d: 0.38, t: 0.38 }  // C6
+        ];
+        notes.forEach(n => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+          gain.gain.setValueAtTime(0.28, now + n.t);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d + 0.05);
+        });
       }
 
       playSlide() {
@@ -1787,6 +1956,124 @@
        ========================================================================== */
     const laneManager = new LaneManager();
     const player = new Player(selectedCharId);
+
+    /* ==========================================================================
+       명예의 전당 (Top 10 Leaderboard) 관리자
+       ========================================================================== */
+    const DEFAULT_LEADERBOARD = [
+      { name: '골목대장 꼬꼬', score: 85, coins: 18, charIcon: '🐔', charId: 'chicken', biome: '사막', date: '09.01' },
+      { name: '질주하는 오리', score: 62, coins: 12, charIcon: '🦆', charId: 'duck', biome: '툰드라', date: '09.02' },
+      { name: '시티 비둘기', score: 45, coins: 9, charIcon: '🐦', charId: 'pigeon', biome: '초원', date: '09.03' },
+      { name: '점핑 개구리', score: 32, coins: 7, charIcon: '🐸', charId: 'frog', biome: '초원', date: '09.04' },
+      { name: '레트로 봇', score: 20, coins: 4, charIcon: '🤖', charId: 'robot', biome: '초원', date: '09.05' }
+    ];
+
+    class LeaderboardManager {
+      constructor() {
+        this.storageKey = 'crossy_leaderboard_v1';
+        this.board = this.load();
+      }
+      load() {
+        try {
+          const saved = localStorage.getItem(this.storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        return [...DEFAULT_LEADERBOARD];
+      }
+      save() {
+        try {
+          localStorage.setItem(this.storageKey, JSON.stringify(this.board));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      checkRank(score) {
+        if (score <= 0) return 0;
+        if (this.board.length < 10) {
+          let pos = 1;
+          for (let item of this.board) {
+            if (score > item.score) return pos;
+            pos++;
+          }
+          return pos <= 10 ? pos : 0;
+        }
+        for (let i = 0; i < this.board.length; i++) {
+          if (score > this.board[i].score) {
+            return i + 1;
+          }
+        }
+        return 0;
+      }
+      addScore(name, score, coins, charId, charIcon, biome) {
+        const today = new Date();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const entry = {
+          name: name || '길건너용사',
+          score,
+          coins,
+          charId,
+          charIcon,
+          biome,
+          date: `${mm}.${dd}`
+        };
+        this.board.push(entry);
+        this.board.sort((a, b) => b.score - a.score || b.coins - a.coins);
+        this.board = this.board.slice(0, 10);
+        this.save();
+        const rank = this.board.findIndex(item => item === entry) + 1;
+        return rank;
+      }
+      reset() {
+        this.board = [...DEFAULT_LEADERBOARD];
+        this.save();
+        this.render();
+      }
+      render(highlightRank = -1) {
+        const listEl = document.getElementById('ranking-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        this.board.forEach((item, idx) => {
+          const rank = idx + 1;
+          const row = document.createElement('div');
+          row.className = 'ranking-row' + (rank <= 3 ? ` rank-top-${rank}` : '') + (rank === highlightRank ? ' highlighted-row' : '');
+
+          let badgeIcon = `${rank}`;
+          if (rank === 1) badgeIcon = '🥇';
+          else if (rank === 2) badgeIcon = '🥈';
+          else if (rank === 3) badgeIcon = '🥉';
+
+          row.innerHTML = `
+            <div class="rank-pos rank-badge-${rank}">${badgeIcon}</div>
+            <div class="rank-user">
+              <span class="rank-char-icon">${item.charIcon || '🐔'}</span>
+              <span class="rank-name">${this.escapeHtml(item.name)}</span>
+            </div>
+            <div class="rank-meta">
+              <span class="rank-biome">${item.biome || '초원'}</span>
+              <span class="rank-coins">🪙 ${item.coins || 0}</span>
+            </div>
+            <div class="rank-score">${item.score} <span style="font-size:11px;font-weight:700;color:#94a3b8;">점</span></div>
+          `;
+          listEl.appendChild(row);
+        });
+      }
+      escapeHtml(str) {
+        return (str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+    }
+
+    const leaderboard = new LeaderboardManager();
+
     let eagle = null;
 
     let score = 0;
@@ -1796,7 +2083,8 @@
 
     let currentBiome = BIOME_TYPES.grassland;
     let highScore = parseInt(localStorage.getItem('crossy_high_score') || '0', 10);
-    document.getElementById('high-score-display').innerText = highScore;
+    const highScoreEl = document.getElementById('high-score-display');
+    if (highScoreEl) highScoreEl.innerText = highScore;
 
     let isGameOver = false;
     let eagleActive = false;
@@ -2045,15 +2333,20 @@
       scene.add(eagle);
     }
 
+    let currentAchievedRank = 0;
+    let rankSubmitted = false;
+
     function triggerGameOver(reason) {
       if (isGameOver) return;
       isGameOver = true;
       player.isDead = true;
+      rankSubmitted = false;
 
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('crossy_high_score', highScore.toString());
-        document.getElementById('high-score-display').innerText = highScore;
+        const hsEl = document.getElementById('high-score-display');
+        if (hsEl) hsEl.innerText = highScore;
       }
 
       document.getElementById('game-over-reason').innerText = reason;
@@ -2061,6 +2354,20 @@
       document.getElementById('final-coins').innerText = coins;
       document.getElementById('final-biome').innerText = currentBiome.name;
       document.getElementById('final-high-score').innerText = highScore;
+
+      // TOP 10 랭킹 진입 검사
+      currentAchievedRank = leaderboard.checkRank(score);
+      const newRankSection = document.getElementById('new-rank-section');
+      if (currentAchievedRank > 0) {
+        newRankSection.style.display = 'block';
+        document.getElementById('new-rank-pos').innerText = `#${currentAchievedRank}위`;
+        const lastNick = localStorage.getItem('crossy_player_name') || '길건너용사';
+        document.getElementById('player-nickname').value = lastNick;
+        sfx.playFanfare();
+      } else {
+        newRankSection.style.display = 'none';
+      }
+
       document.getElementById('game-over-modal').style.display = 'flex';
     }
 
@@ -2089,6 +2396,57 @@
     }
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+    // 랭킹 모달 이벤트
+    const rankingModal = document.getElementById('ranking-modal');
+    function openRankingModal(highlightRank = -1) {
+      leaderboard.render(highlightRank);
+      rankingModal.style.display = 'flex';
+    }
+    function closeRankingModal() {
+      rankingModal.style.display = 'none';
+    }
+
+    document.getElementById('ranking-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openRankingModal();
+    });
+    document.getElementById('restart-rank-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openRankingModal();
+    });
+    document.getElementById('ranking-close-btn').addEventListener('click', closeRankingModal);
+    document.getElementById('ranking-reset-btn').addEventListener('click', () => {
+      if (confirm('명예의 전당 랭킹 기록을 초기화하시겠습니까?')) {
+        leaderboard.reset();
+      }
+    });
+
+    // 닉네임 랭킹 등록
+    const submitRankBtn = document.getElementById('submit-rank-btn');
+    if (submitRankBtn) {
+      submitRankBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (rankSubmitted || currentAchievedRank <= 0) return;
+        const nickInput = document.getElementById('player-nickname');
+        const nick = (nickInput.value.trim() || '길건너용사').slice(0, 8);
+        localStorage.setItem('crossy_player_name', nick);
+
+        const curChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
+        const newRank = leaderboard.addScore(
+          nick,
+          score,
+          coins,
+          curChar.id,
+          curChar.icon,
+          currentBiome.name
+        );
+        rankSubmitted = true;
+        document.getElementById('new-rank-section').style.display = 'none';
+        openRankingModal(newRank);
+      });
+    }
+
 
     const muteBtn = document.getElementById('mute-btn');
     if (muteBtn) {
