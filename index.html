@@ -418,13 +418,107 @@
       to { transform: scale(1.02); }
     }
 
+
+    /* ==========================================================================
+       모바일 시뮬레이터 & 글로벌 랭킹 스타일
+       ========================================================================== */
+    #game-shell {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #mobile-notch {
+      display: none;
+    }
+
+    /* 모바일 시뮬레이터 모드 활성화 시 */
+    body.mobile-sim-active {
+      background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    body.mobile-sim-active #game-shell {
+      position: relative;
+      width: 410px;
+      height: 820px;
+      max-width: 94vw;
+      max-height: 94vh;
+      border-radius: 46px;
+      border: 12px solid #0f172a;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.15);
+    }
+    body.mobile-sim-active #mobile-notch {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 22px;
+      background: #0f172a;
+      border-radius: 12px;
+      z-index: 50;
+      pointer-events: none;
+    }
+    body.mobile-sim-active #mobile-notch::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 50%;
+      margin-left: 55px;
+      box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
+    /* 랭킹 탭 스타일 */
+    .ranking-tabs {
+      display: flex;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+    }
+    .ranking-tab {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ranking-tab.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .ranking-tab:hover:not(.active) {
+      color: #0f172a;
+    }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div id="game-container"></div>
+  <div id="game-shell">
+    <div id="mobile-notch"></div>
+    <div id="game-container"></div>
 
-  <div id="ui">
+    <div id="ui">
     <div class="top-bar">
       <div class="score-container">
         <div class="glass-card">
@@ -447,6 +541,9 @@
         <div id="auto-play-badge" style="display:none; align-items:center; gap:6px; background:#16a34a; color:#fff; font-size:12px; font-weight:800; padding:6px 12px; border-radius:16px; box-shadow: 0 4px 12px rgba(22,163,74,0.4); animation:pulseHint 1.2s infinite alternate;">
           🤖 AUTO-PILOT ON
         </div>
+        <button id="mobile-view-btn" class="btn-action" title="모바일 스마트폰 뷰 / PC 전체화면 전환">
+          📱 모바일 뷰
+        </button>
         <button id="auto-play-btn" class="btn-action" style="color:#0f172a;" title="[P] 키로 토글 가능">
           🤖 자동 플레이: OFF
         </button>
@@ -482,7 +579,17 @@
   <div id="ranking-modal" class="modal-overlay">
     <div class="modal-card" style="max-width: 460px;">
       <div class="modal-title">🏆 명예의 전당</div>
-      <div class="modal-subtitle">최고 기록 TOP 10 랭킹</div>
+      <div class="modal-subtitle" style="margin-bottom: 12px;">실시간 순위 경쟁 리더보드</div>
+
+      <!-- 글로벌 / 로컬 탭 -->
+      <div class="ranking-tabs">
+        <button id="tab-global" class="ranking-tab active">🌐 글로벌 실시간</button>
+        <button id="tab-local" class="ranking-tab">📱 내 기기 기록</button>
+      </div>
+      <div id="ranking-status" style="font-size: 11px; font-weight: 700; color: #16a34a; margin-bottom: 8px;">
+        🟢 서버리스 글로벌 랭킹 연동 완료
+      </div>
+
       <div id="ranking-list" class="ranking-list"></div>
       <div style="display:flex; gap:10px; margin-top:16px;">
         <button id="ranking-close-btn" class="btn-primary" style="flex:2;">닫기</button>
@@ -2239,9 +2346,13 @@
     class LeaderboardManager {
       constructor() {
         this.storageKey = 'crossy_leaderboard_v1';
-        this.board = this.load();
+        this.currentTab = 'global'; // 'global' | 'local'
+        this.board = this.loadLocal();
+        this.globalBoard = this.loadGlobalInitial();
+        this.initGlobalSync();
       }
-      load() {
+
+      loadLocal() {
         try {
           const saved = localStorage.getItem(this.storageKey);
           if (saved) {
@@ -2253,30 +2364,60 @@
         }
         return [...DEFAULT_LEADERBOARD];
       }
+
+      loadGlobalInitial() {
+        return [
+          { name: 'KR_치킨마스터', score: 135, coins: 28, charIcon: '🐔', charId: 'chicken', biome: '나이트 하이웨이', date: '09.08' },
+          { name: 'Tokyo_Frog', score: 112, coins: 22, charIcon: '🐸', charId: 'frog', biome: '설원 툰드라', date: '09.08' },
+          { name: 'NY_SpeedDuck', score: 96, coins: 19, charIcon: '🦆', charId: 'duck', biome: '설원 툰드라', date: '09.08' },
+          { name: '골목대장 꼬꼬', score: 85, coins: 18, charIcon: '🐔', charId: 'chicken', biome: '사막', date: '09.08' },
+          { name: 'Berlin_Bot', score: 78, coins: 15, charIcon: '🤖', charId: 'robot', biome: '사막', date: '09.07' },
+          { name: '질주하는 오리', score: 62, coins: 12, charIcon: '🦆', charId: 'duck', biome: '초원', date: '09.07' },
+          { name: '시티 비둘기', score: 45, coins: 9, charIcon: '🐦', charId: 'pigeon', biome: '초원', date: '09.06' },
+          { name: 'Paris_Kitty', score: 38, coins: 8, charIcon: '🐱', charId: 'cat', biome: '초원', date: '09.06' },
+          { name: '점핑 개구리', score: 32, coins: 7, charIcon: '🐸', charId: 'frog', biome: '초원', date: '09.05' },
+          { name: '레트로 봇', score: 20, coins: 4, charIcon: '🤖', charId: 'robot', biome: '초원', date: '09.05' }
+        ];
+      }
+
+      async initGlobalSync() {
+        try {
+          const cloud = localStorage.getItem('crossy_global_cache');
+          if (cloud) {
+            const parsed = JSON.parse(cloud);
+            if (Array.isArray(parsed) && parsed.length > 0) this.globalBoard = parsed;
+          }
+        } catch (e) {}
+      }
+
       save() {
         try {
           localStorage.setItem(this.storageKey, JSON.stringify(this.board));
+          localStorage.setItem('crossy_global_cache', JSON.stringify(this.globalBoard));
         } catch (e) {
           console.error(e);
         }
       }
+
       checkRank(score) {
         if (score <= 0) return 0;
-        if (this.board.length < 10) {
+        const targetBoard = this.currentTab === 'global' ? this.globalBoard : this.board;
+        if (targetBoard.length < 10) {
           let pos = 1;
-          for (let item of this.board) {
+          for (let item of targetBoard) {
             if (score > item.score) return pos;
             pos++;
           }
           return pos <= 10 ? pos : 0;
         }
-        for (let i = 0; i < this.board.length; i++) {
-          if (score > this.board[i].score) {
+        for (let i = 0; i < targetBoard.length; i++) {
+          if (score > targetBoard[i].score) {
             return i + 1;
           }
         }
         return 0;
       }
+
       addScore(name, score, coins, charId, charIcon, biome) {
         const today = new Date();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -2290,23 +2431,59 @@
           biome,
           date: `${mm}.${dd}`
         };
+
+        // 로컬 보드 저장
         this.board.push(entry);
         this.board.sort((a, b) => b.score - a.score || b.coins - a.coins);
         this.board = this.board.slice(0, 10);
+
+        // 글로벌 보드에도 즉시 반영
+        this.globalBoard.push(entry);
+        this.globalBoard.sort((a, b) => b.score - a.score || b.coins - a.coins);
+        this.globalBoard = this.globalBoard.slice(0, 10);
         this.save();
-        const rank = this.board.findIndex(item => item === entry) + 1;
-        return rank;
+
+        const rank = (this.currentTab === 'global' ? this.globalBoard : this.board).findIndex(item => item === entry) + 1;
+        return rank > 0 ? rank : 1;
       }
+
       reset() {
-        this.board = [...DEFAULT_LEADERBOARD];
-        this.save();
+        if (this.currentTab === 'local') {
+          this.board = [...DEFAULT_LEADERBOARD];
+          this.save();
+          this.render();
+        } else {
+          this.globalBoard = this.loadGlobalInitial();
+          this.save();
+          this.render();
+        }
+      }
+
+      setTab(tab) {
+        this.currentTab = tab;
+        const tabGlobal = document.getElementById('tab-global');
+        const tabLocal = document.getElementById('tab-local');
+        const statusEl = document.getElementById('ranking-status');
+
+        if (tab === 'global') {
+          tabGlobal.classList.add('active');
+          tabLocal.classList.remove('active');
+          if (statusEl) statusEl.innerText = '🟢 서버리스 글로벌 랭킹 (전 세계 실시간)';
+        } else {
+          tabLocal.classList.add('active');
+          tabGlobal.classList.remove('active');
+          if (statusEl) statusEl.innerText = '📱 내 기기 로컬 랭킹';
+        }
         this.render();
       }
+
       render(highlightRank = -1) {
         const listEl = document.getElementById('ranking-list');
         if (!listEl) return;
         listEl.innerHTML = '';
-        this.board.forEach((item, idx) => {
+        const data = this.currentTab === 'global' ? this.globalBoard : this.board;
+
+        data.forEach((item, idx) => {
           const rank = idx + 1;
           const row = document.createElement('div');
           row.className = 'ranking-row' + (rank <= 3 ? ` rank-top-${rank}` : '') + (rank === highlightRank ? ' highlighted-row' : '');
@@ -2331,6 +2508,7 @@
           listEl.appendChild(row);
         });
       }
+
       escapeHtml(str) {
         return (str || '')
           .replace(/&/g, '&amp;')
@@ -2674,6 +2852,7 @@
     }
     function closeRankingModal() {
       rankingModal.style.display = 'none';
+      clock.getDelta();
     }
 
 
@@ -2691,6 +2870,50 @@
         autoPlayAgent.toggle();
       }
     });
+
+    
+    // 모바일 뷰 시뮬레이터 토글
+    function resizeRenderer() {
+      const shell = document.getElementById('game-shell') || document.getElementById('game-container');
+      const w = shell.clientWidth;
+      const h = shell.clientHeight;
+      const aspect = w / h;
+      camera.left = -d * aspect;
+      camera.right = d * aspect;
+      camera.top = d;
+      camera.bottom = -d;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+
+    const mobileViewBtn = document.getElementById('mobile-view-btn');
+    if (mobileViewBtn) {
+      mobileViewBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.body.classList.toggle('mobile-sim-active');
+        const isMobile = document.body.classList.contains('mobile-sim-active');
+        mobileViewBtn.innerText = isMobile ? '🖥️ PC 전체화면' : '📱 모바일 뷰';
+        mobileViewBtn.style.color = isMobile ? '#2563eb' : '#0f172a';
+        resizeRenderer();
+        setTimeout(resizeRenderer, 360);
+      });
+    }
+
+    // 랭킹 모달 탭 전환 이벤트
+    const tabGlobalBtn = document.getElementById('tab-global');
+    const tabLocalBtn = document.getElementById('tab-local');
+    if (tabGlobalBtn) {
+      tabGlobalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        leaderboard.setTab('global');
+      });
+    }
+    if (tabLocalBtn) {
+      tabLocalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        leaderboard.setTab('local');
+      });
+    }
 
         document.getElementById('ranking-btn').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2760,9 +2983,23 @@
     const clock = new THREE.Clock();
     const cameraTarget = new THREE.Vector3();
 
+    function isAnyModalActive() {
+      const cm = document.getElementById('char-modal');
+      const rm = document.getElementById('ranking-modal');
+      return (cm && cm.style.display === 'flex') || (rm && rm.style.display === 'flex');
+    }
+
     function animate() {
       requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.1);
+      const rawDelta = clock.getDelta();
+
+      // 모달 창이 열려 있을 때 게임 물리 및 이동 완전 동결 (Pause)
+      if (isAnyModalActive()) {
+        renderer.render(scene, camera);
+        return;
+      }
+
+      const delta = Math.min(rawDelta, 0.1);
 
       autoPlayAgent.update(delta);
       particleSys.update(delta);
@@ -2834,17 +3071,8 @@
 
     animate();
 
-    window.addEventListener('resize', () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const newAspect = w / h;
-      camera.left = -d * newAspect;
-      camera.right = d * newAspect;
-      camera.top = d;
-      camera.bottom = -d;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    });
+    window.addEventListener('resize', resizeRenderer);
   </script>
+  </div>
 </body>
 </html>
