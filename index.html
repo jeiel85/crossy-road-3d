@@ -14,6 +14,7 @@
     }
     body {
       overflow: hidden;
+      touch-action: none;
       background: #73C9EA;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     }
@@ -201,9 +202,14 @@
           <div id="coin-display" class="val coin-val">0</div>
         </div>
       </div>
-      <div class="glass-card" style="text-align: right;">
-        <div class="label">TOP</div>
-        <div id="high-score-display" class="val high-val">0</div>
+      <div style="display: flex; gap: 10px; align-items: flex-start;">
+        <div class="glass-card" style="text-align: right;">
+          <div class="label">TOP</div>
+          <div id="high-score-display" class="val high-val">0</div>
+        </div>
+        <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 20px; pointer-events: auto; display: flex; align-items: center; justify-content: center; height: 100%;">
+          🔊
+        </button>
       </div>
     </div>
     <div class="bottom-hint">화면 터치(스와이프/탭) 또는 방향키(↑ ↓ ← →)로 점프!</div>
@@ -239,6 +245,11 @@
     class SoundFX {
       constructor() {
         this.ctx = null;
+        this.isMuted = false;
+      }
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        return this.isMuted;
       }
       init() {
         if (!this.ctx) {
@@ -252,6 +263,7 @@
       // 경쾌하고 통통 튀는 팝 점프음
       playJump() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -268,6 +280,7 @@
       // 강물에 퐁당 빠지는 소리
       playSplash() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -284,6 +297,7 @@
       // 쾅! 하는 묵직한 차량 충돌음
       playCrash() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         const bufferSize = Math.floor(this.ctx.sampleRate * 0.28);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -308,6 +322,7 @@
       // 철도 신호등 경고음 땡! 땡!
       playCrossingBell() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -323,6 +338,7 @@
       // 초고속 기차 굉음 & 경적
       playTrainHorn() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         [293, 370, 440].forEach(f => {
           const osc = this.ctx.createOscillator();
@@ -340,6 +356,7 @@
       // 독수리 급강하 쉬이익-!
       playEagleSwoop() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -356,6 +373,7 @@
       // 코인 획득 쨍그랑!
       playCoin() {
         if (!this.ctx) return;
+        if (this.isMuted) return;
         const now = this.ctx.currentTime;
         [987, 1318].forEach((f, idx) => {
           const osc = this.ctx.createOscillator();
@@ -496,6 +514,23 @@
       }
     }
     const particleSys = new ParticleSystem();
+    // 메모리 누수 방지 헬퍼 (지오메트리 & 매트리얼 해제)
+    function disposeHierarchy(obj) {
+      if (!obj) return;
+      obj.traverse(child => {
+        if (child.isMesh) {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach(m => m.dispose());
+            } else {
+              child.material.dispose();
+            }
+          }
+        }
+      });
+    }
+
 
     /* ==========================================================================
        5. 3D 복셀 모델 생성 유틸리티
@@ -733,7 +768,10 @@
       }
 
       init() {
-        this.lanes.forEach(l => scene.remove(l.mesh));
+        this.lanes.forEach(l => {
+          scene.remove(l.mesh);
+          disposeHierarchy(l.mesh);
+        });
         this.lanes = [];
         this.nextLaneIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
@@ -1012,6 +1050,7 @@
         while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 15) {
           const old = this.lanes.shift();
           scene.remove(old.mesh);
+          disposeHierarchy(old.mesh);
         }
         while (this.lanes.length < TOTAL_LANES_BUFFER) {
           this.generateNextLane();
@@ -1408,6 +1447,16 @@
     }
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    const muteBtn = document.getElementById('mute-btn');
+    if (muteBtn) {
+      muteBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        sfx.init();
+        const muted = sfx.toggleMute();
+        muteBtn.innerText = muted ? '🔇' : '🔊';
+      });
+    }
+
 
     /* ==========================================================================
        10. 메인 루프 & 원작 카메라 트래킹 (Auto-scroll + Lerp)
