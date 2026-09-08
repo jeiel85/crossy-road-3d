@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Crossy Road 3D</title>
+  <title>Crossy Road 3D - Expanded Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -46,25 +46,26 @@
     }
     .score-container {
       display: flex;
-      gap: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     .glass-card {
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
-      padding: 10px 22px;
+      padding: 10px 20px;
       border-radius: 18px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
       border: 2px solid rgba(255, 255, 255, 0.95);
     }
     .label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       color: #64748b;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
     .val {
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 900;
       color: #0f172a;
       line-height: 1.1;
@@ -74,7 +75,47 @@
     }
     .high-val {
       color: #f97316;
+      font-size: 22px;
+    }
+    .biome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+    #biome-banner {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      background: rgba(15, 23, 42, 0.88);
+      color: #ffffff;
+      padding: 16px 36px;
+      border-radius: 28px;
       font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      backdrop-filter: blur(12px);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+      white-space: nowrap;
+      z-index: 15;
+    }
+    #biome-banner.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
     }
     .bottom-hint {
       align-self: center;
@@ -98,7 +139,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.68);
       backdrop-filter: blur(12px);
       display: none;
       flex-direction: column;
@@ -109,12 +150,12 @@
     }
     .modal-card {
       background: #ffffff;
-      border-radius: 30px;
-      padding: 36px 42px;
+      border-radius: 32px;
+      padding: 36px 44px;
       text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-      max-width: 360px;
-      width: 90%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      max-width: 380px;
+      width: 92%;
       animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     @keyframes popIn {
@@ -122,7 +163,7 @@
       to { transform: scale(1); opacity: 1; }
     }
     .modal-title {
-      font-size: 30px;
+      font-size: 32px;
       font-weight: 900;
       color: #ef4444;
       margin-bottom: 6px;
@@ -145,7 +186,7 @@
       justify-content: space-between;
       align-items: center;
       margin: 8px 0;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #475569;
     }
@@ -177,12 +218,12 @@
     .key-tag {
       display: inline-block;
       background: #e2e8f0;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 8px;
       font-size: 12px;
       color: #64748b;
-      font-weight: 600;
-      margin-top: 12px;
+      font-weight: 700;
+      margin-top: 14px;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -201,6 +242,9 @@
           <div class="label">COINS</div>
           <div id="coin-display" class="val coin-val">0</div>
         </div>
+        <div id="biome-badge" class="biome-badge" style="align-self: center;">
+          <span>🌲</span> <span id="biome-name">초원 (Grassland)</span>
+        </div>
       </div>
       <div style="display: flex; gap: 10px; align-items: flex-start;">
         <div class="glass-card" style="text-align: right;">
@@ -212,7 +256,11 @@
         </button>
       </div>
     </div>
-    <div class="bottom-hint">화면 터치(스와이프/탭) 또는 방향키(↑ ↓ ← →)로 점프!</div>
+
+    <!-- 바이옴 진입 배너 -->
+    <div id="biome-banner">🌲 GRASSLAND</div>
+
+    <div class="bottom-hint">방향키(WASD) 또는 화면 터치/스와이프로 점프!</div>
   </div>
 
   <div id="game-over-modal">
@@ -229,27 +277,27 @@
           <strong id="final-coins" style="color:#eab308;">0</strong>
         </div>
         <div class="modal-row">
+          <span>도달 스테이지</span>
+          <strong id="final-biome" style="color:#0284c7;">초원</strong>
+        </div>
+        <div class="modal-row">
           <span>최고 기록</span>
           <strong id="final-high-score" style="color:#f97316;">0</strong>
         </div>
       </div>
       <button id="restart-btn" class="restart-btn">다시 도전하기</button>
-      <div class="key-tag">Space 키 또는 화면을 터치해 즉시 재시작</div>
+      <div class="key-tag">Space 키 또는 화면 터치로 즉시 재시작</div>
     </div>
   </div>
 
   <script>
     /* ==========================================================================
-       1. 고품질 Web Audio API 신디사이저 (원작 아케이드 감성)
+       1. 고품질 Web Audio API 신디사이저 (다양한 환경음 & 특수효과)
        ========================================================================== */
     class SoundFX {
       constructor() {
         this.ctx = null;
         this.isMuted = false;
-      }
-      toggleMute() {
-        this.isMuted = !this.isMuted;
-        return this.isMuted;
       }
       init() {
         if (!this.ctx) {
@@ -260,27 +308,43 @@
           this.ctx.resume();
         }
       }
-      // 경쾌하고 통통 튀는 팝 점프음
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        return this.isMuted;
+      }
       playJump() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(260 + Math.random() * 40, now);
         osc.frequency.exponentialRampToValueAtTime(620, now + 0.09);
-        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.setValueAtTime(0.28, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
         osc.stop(now + 0.1);
       }
-      // 강물에 퐁당 빠지는 소리
+      // 빙판 미끄러짐 효과음
+      playSlide() {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(750, now);
+        osc.frequency.exponentialRampToValueAtTime(450, now + 0.14);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
       playSplash() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -294,10 +358,8 @@
         osc.start(now);
         osc.stop(now + 0.23);
       }
-      // 쾅! 하는 묵직한 차량 충돌음
       playCrash() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         const bufferSize = Math.floor(this.ctx.sampleRate * 0.28);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -319,10 +381,8 @@
         gain.connect(this.ctx.destination);
         noise.start(now);
       }
-      // 철도 신호등 경고음 땡! 땡!
       playCrossingBell() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -335,10 +395,8 @@
         osc.start(now);
         osc.stop(now + 0.17);
       }
-      // 초고속 기차 굉음 & 경적
       playTrainHorn() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         [293, 370, 440].forEach(f => {
           const osc = this.ctx.createOscillator();
@@ -353,10 +411,25 @@
           osc.stop(now + 0.66);
         });
       }
-      // 독수리 급강하 쉬이익-!
+      // 경찰차 사이렌
+      playSiren() {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(650, now);
+        osc.frequency.linearRampToValueAtTime(950, now + 0.25);
+        osc.frequency.linearRampToValueAtTime(650, now + 0.5);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.52);
+      }
       playEagleSwoop() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -370,17 +443,15 @@
         osc.start(now);
         osc.stop(now + 0.46);
       }
-      // 코인 획득 쨍그랑!
       playCoin() {
-        if (!this.ctx) return;
-        if (this.isMuted) return;
+        if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
         [987, 1318].forEach((f, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(f, now + idx * 0.07);
-          gain.gain.setValueAtTime(0.25, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.24, now + idx * 0.07);
           gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.15);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -388,43 +459,117 @@
           osc.stop(now + idx * 0.07 + 0.16);
         });
       }
+      // 스테이지 전환 팡파르
+      playStageFanfare() {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        [523, 659, 784, 1046].forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.25, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.28);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.3);
+        });
+      }
     }
     const sfx = new SoundFX();
 
     /* ==========================================================================
-       2. 원작 팔레트 및 지형 규격 설정
+       2. 원작급 4대 바이옴 (Biomes) 데이터 정의
        ========================================================================== */
-    const CELL_SIZE = 26;
-    const GRID_COLS = 21; // -10 ~ +10
-    const LANE_START_OFFSET = -8;
-    const TOTAL_LANES_BUFFER = 48;
+    const BIOME_TYPES = {
+      grassland: {
+        id: 'grassland',
+        name: '초원 (Grassland)',
+        icon: '🌲',
+        skyColor: 0x7FD2F5,
+        fogColor: 0x7FD2F5,
+        groundColor: 0x8CD85D,
+        roadColor: 0x3F4652,
+        waterColor: 0x48BFE3,
+        sunColor: 0xFFFAED,
+        ambientIntensity: 0.72,
+        obstacleType: 'tree'
+      },
+      desert: {
+        id: 'desert',
+        name: '사막 협곡 (Canyon)',
+        icon: '🏜️',
+        skyColor: 0xFDE047,
+        fogColor: 0xFDE047,
+        groundColor: 0xEAB308,
+        roadColor: 0x78350F, // 흙길
+        waterColor: 0xD97706, // 황토빛 급류
+        sunColor: 0xFFEDD5,
+        ambientIntensity: 0.8,
+        obstacleType: 'cactus'
+      },
+      snow: {
+        id: 'snow',
+        name: '설원 툰드라 (Frozen)',
+        icon: '❄️',
+        skyColor: 0xBAE6FD,
+        fogColor: 0xBAE6FD,
+        groundColor: 0xF8FAFC, // 하얀 눈밭
+        roadColor: 0x475569,
+        waterColor: 0x38BDF8,
+        sunColor: 0xF0F9FF,
+        ambientIntensity: 0.75,
+        obstacleType: 'snowtree'
+      },
+      city: {
+        id: 'city',
+        name: '나이트 하이웨이 (Night City)',
+        icon: '🌃',
+        skyColor: 0x0F172A,
+        fogColor: 0x0F172A,
+        groundColor: 0x1E293B, // 아스팔트 & 보도블럭
+        roadColor: 0x020617,
+        waterColor: 0x0284C7,
+        sunColor: 0x93C5FD,
+        ambientIntensity: 0.55,
+        obstacleType: 'streetlight'
+      }
+    };
 
-    // 원작 Crossy Road 고유의 부드럽고 따뜻한 복셀 컬러톤
+    // 40~50레인마다 바이옴이 교체되는 스테이지 시퀀스
+    const BIOME_SEQUENCE = ['grassland', 'desert', 'snow', 'city'];
+    function getBiomeForLane(laneIndex) {
+      if (laneIndex < 0) return BIOME_TYPES.grassland;
+      const stageIdx = Math.floor(laneIndex / 45) % BIOME_SEQUENCE.length;
+      return BIOME_TYPES[BIOME_SEQUENCE[stageIdx]];
+    }
+
+    const CELL_SIZE = 26;
+    const GRID_COLS = 21;
+    const LANE_START_OFFSET = -8;
+    const TOTAL_LANES_BUFFER = 52;
+
     const COLORS = {
-      grass: 0x8CD85D,
-      grassDark: 0x7BC94C,
-      road: 0x3F4652,
-      river: 0x48BFE3,
-      waterFoam: 0x64DFDF,
-      rail: 0x78716C,
-      railTie: 0x543D2B,
-      railSteel: 0xD1D5DB,
-      log: 0xA0632E,
-      logCut: 0xDC9E60,
-      lilyPad: 0x57CC99,
+      rail: 0x64748B,
+      railTie: 0x451A03,
+      railSteel: 0xE2E8F0,
+      log: 0x92400E,
+      logCut: 0xD97706,
+      ice: 0xA5F3FC,
+      iceCrack: 0x38BDF8,
+      lilyPad: 0x4ADE80,
       coin: 0xFACC15,
-      treeLeaves: [0x48B02C, 0x389E20, 0x58C438],
-      treeTrunk: 0x704214,
       carColors: [0xEF4444, 0x3B82F6, 0xF59E0B, 0xEC4899, 0x8B5CF6, 0x10B981, 0x06B6D4]
     };
 
     /* ==========================================================================
-       3. 씬 및 원작 고유 쿼터뷰 아이소메트릭 카메라 (Isometric Camera)
+       3. 씬 및 정통 아이소메트릭 쿼터뷰 카메라
        ========================================================================== */
     const container = document.getElementById('game-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x7FD2F5);
-    scene.fog = new THREE.Fog(0x7FD2F5, 360, 850);
+    scene.background = new THREE.Color(BIOME_TYPES.grassland.skyColor);
+    scene.fog = new THREE.Fog(BIOME_TYPES.grassland.fogColor, 380, 880);
 
     const aspect = window.innerWidth / window.innerHeight;
     const d = 280;
@@ -432,12 +577,6 @@
       -d * aspect, d * aspect, d, -d, -1000, 2500
     );
 
-    /* 
-       ★ 원작 Crossy Road의 정통 아이소메트릭 시점 공식:
-       - 플레이어 진행 방향: +Z (화면 우상단으로 올라가는 방향)
-       - 레인 가로 방향: X축 (화면 좌상단 <-> 우하단으로 길게 가로지름)
-       - 카메라 위치: 플레이어의 뒤쪽(-Z)과 약간 왼쪽(-X) 위(+Y)에서 내려다봄!
-    */
     const CAMERA_OFFSET = new THREE.Vector3(-240, 340, -240);
     camera.position.copy(CAMERA_OFFSET);
     camera.lookAt(0, 0, 0);
@@ -449,7 +588,6 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // 은은한 앰비언트 라이트 + 따뜻한 태양광(DirectionalLight)
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
     scene.add(ambientLight);
 
@@ -468,7 +606,7 @@
     scene.add(sunLight);
 
     /* ==========================================================================
-       4. 파티클 이펙트 시스템 (깃털, 물보라, 흙먼지)
+       4. 파티클 이펙트 & 메모리 정리 유틸리티
        ========================================================================== */
     class ParticleSystem {
       constructor() {
@@ -501,7 +639,7 @@
             p.mesh.material.dispose();
             this.particles.splice(i, 1);
           } else {
-            p.vel.y -= 140 * delta; // 중력
+            p.vel.y -= 140 * delta;
             p.mesh.position.addScaledVector(p.vel, delta);
             const scale = p.life / p.maxLife;
             p.mesh.scale.set(scale, scale, scale);
@@ -509,12 +647,16 @@
         }
       }
       clear() {
-        this.particles.forEach(p => scene.remove(p.mesh));
+        this.particles.forEach(p => {
+          scene.remove(p.mesh);
+          p.mesh.geometry.dispose();
+          p.mesh.material.dispose();
+        });
         this.particles = [];
       }
     }
     const particleSys = new ParticleSystem();
-    // 메모리 누수 방지 헬퍼 (지오메트리 & 매트리얼 해제)
+
     function disposeHierarchy(obj) {
       if (!obj) return;
       obj.traverse(child => {
@@ -531,9 +673,8 @@
       });
     }
 
-
     /* ==========================================================================
-       5. 3D 복셀 모델 생성 유틸리티
+       5. 3D 복셀 모델 라이브러리 (바이옴별 신규 오브젝트 대폭 확장)
        ========================================================================== */
     function createBox(w, h, d, color, cast = true, receive = true) {
       const geo = new THREE.BoxGeometry(w, h, d);
@@ -544,47 +685,37 @@
       return mesh;
     }
 
-    // 원작 디테일을 살린 닭 캐릭터 (날개 펄럭임 포함)
+    // 기본 복셀 닭
     function createChicken() {
       const group = new THREE.Group();
-
-      // 몸통
       const body = createBox(15, 15, 16, 0xFFFFFF);
       body.position.y = 12;
       group.add(body);
 
-      // 빨간 볏
       const comb = createBox(4, 5, 8, 0xEF4444);
       comb.position.set(0, 21.5, 0);
       group.add(comb);
 
-      // 노란 부리
       const beak = createBox(6, 4, 6, 0xF97316);
       beak.position.set(0, 12, 10);
       group.add(beak);
 
-      // 턱 벼슬
       const wattle = createBox(3, 4, 3, 0xEF4444);
       wattle.position.set(0, 8.5, 9);
       group.add(wattle);
 
-      // 눈
       [-6, 6].forEach(x => {
         const eye = createBox(2, 2.5, 2, 0x0F172A, false, false);
         eye.position.set(x, 14, 7);
         group.add(eye);
       });
 
-      // 좌우 날개
       const leftWing = createBox(2, 8, 10, 0xF8FAFC);
       leftWing.position.set(-8.5, 11, 0);
-      group.add(leftWing);
-
       const rightWing = createBox(2, 8, 10, 0xF8FAFC);
       rightWing.position.set(8.5, 11, 0);
-      group.add(rightWing);
+      group.add(leftWing, rightWing);
 
-      // 다리
       [-4.5, 4.5].forEach(x => {
         const leg = createBox(2.2, 5.5, 2.2, 0xF59E0B);
         leg.position.set(x, 2.75, 0);
@@ -593,92 +724,178 @@
 
       group.leftWing = leftWing;
       group.rightWing = rightWing;
-      group.body = body;
-
       return group;
     }
 
-    // 복셀 나무 (랜덤 형태)
+    // 초원 나무
     function createTree() {
       const tree = new THREE.Group();
       const trunkH = 12 + Math.random() * 6;
-      const trunk = createBox(7, trunkH, 7, COLORS.treeTrunk);
+      const trunk = createBox(7, trunkH, 7, 0x704214);
       trunk.position.y = trunkH / 2;
       tree.add(trunk);
 
-      const leafColor = COLORS.treeLeaves[Math.floor(Math.random() * COLORS.treeLeaves.length)];
-      const layers = 2 + Math.floor(Math.random() * 2);
+      const leaves = [0x48B02C, 0x389E20, 0x58C438];
+      const leafColor = leaves[Math.floor(Math.random() * leaves.length)];
       let y = trunkH;
       let size = 20;
-
-      for (let i = 0; i < layers; i++) {
-        const layerBox = createBox(size, 9, size, leafColor);
-        layerBox.position.y = y + 4.5;
+      for (let i = 0; i < 3; i++) {
+        const layerBox = createBox(size, 8.5, size, leafColor);
+        layerBox.position.y = y + 4.25;
         tree.add(layerBox);
-        y += 7.5;
+        y += 7;
         size -= 4.5;
       }
       return tree;
     }
 
-    // 원작풍 복셀 차량 (승용차/소형차/트럭)
-    function createVehicle(type = 'car', customColor = null) {
-      const car = new THREE.Group();
-      const bodyColor = customColor || COLORS.carColors[Math.floor(Math.random() * COLORS.carColors.length)];
+    // 🏜️ 사막 선인장
+    function createCactus() {
+      const cactus = new THREE.Group();
+      const mainH = 22 + Math.random() * 8;
+      const stem = createBox(6, mainH, 6, 0x15803D);
+      stem.position.y = mainH / 2;
+      cactus.add(stem);
+
+      // 왼쪽 팔
+      const leftArmH = createBox(8, 5, 5, 0x15803D);
+      leftArmH.position.set(-6, mainH * 0.55, 0);
+      const leftArmV = createBox(5, 10, 5, 0x15803D);
+      leftArmV.position.set(-8, mainH * 0.55 + 5, 0);
+      cactus.add(leftArmH, leftArmV);
+
+      // 오른쪽 팔
+      const rightArmH = createBox(8, 5, 5, 0x15803D);
+      rightArmH.position.set(6, mainH * 0.4, 0);
+      const rightArmV = createBox(5, 10, 5, 0x15803D);
+      rightArmV.position.set(8, mainH * 0.4 + 5, 0);
+      cactus.add(rightArmH, rightArmV);
+
+      return cactus;
+    }
+
+    // ❄️ 눈 덮인 설원 전나무
+    function createSnowPine() {
+      const pine = new THREE.Group();
+      const trunk = createBox(6, 12, 6, 0x451A03);
+      trunk.position.y = 6;
+      pine.add(trunk);
+
+      let y = 10;
+      let size = 22;
+      for (let i = 0; i < 3; i++) {
+        const green = createBox(size, 6, size, 0x166534);
+        green.position.y = y + 3;
+        const snowCap = createBox(size - 2, 2.5, size - 2, 0xFFFFFF, false, false);
+        snowCap.position.set(0, y + 6.5, 0);
+        pine.add(green, snowCap);
+        y += 6;
+        size -= 5;
+      }
+      return pine;
+    }
+
+    // 🌃 도시 가로등
+    function createStreetLight() {
+      const light = new THREE.Group();
+      const pole = createBox(3.5, 32, 3.5, 0x334155);
+      pole.position.y = 16;
+      light.add(pole);
+
+      const arm = createBox(10, 3, 3, 0x334155);
+      arm.position.set(4, 31, 0);
+      light.add(arm);
+
+      const lamp = createBox(5, 3, 5, 0xFACC15, false, false);
+      lamp.position.set(8, 29, 0);
+      light.add(lamp);
+
+      return light;
+    }
+
+    // 다양한 차량 모델 (승용차, 트럭, 🚨경찰차, 🏎️스포츠카)
+    function createVehicle(type = 'car') {
+      const vehicle = new THREE.Group();
+      const randColor = COLORS.carColors[Math.floor(Math.random() * COLORS.carColors.length)];
 
       if (type === 'car') {
-        const base = createBox(30, 9, 16, bodyColor);
+        const base = createBox(30, 9, 16, randColor);
         base.position.y = 7;
-        car.add(base);
-
         const cabin = createBox(17, 7, 13.5, 0xF1F5F9);
         cabin.position.set(-1, 14, 0);
-        car.add(cabin);
-
         const glass = createBox(17.5, 5, 12, 0x334155, false, false);
         glass.position.set(-1, 14, 0);
-        car.add(glass);
+        vehicle.add(base, cabin, glass);
 
         [[-9.5, -8.2], [-9.5, 8.2], [9.5, -8.2], [9.5, 8.2]].forEach(([wx, wz]) => {
           const w = createBox(6, 6, 2.8, 0x1E293B);
           w.position.set(wx, 3.2, wz);
-          car.add(w);
+          vehicle.add(w);
         });
-      } else {
-        // 대형 트럭
-        const base = createBox(46, 10, 17, bodyColor);
+      } else if (type === 'truck') {
+        const base = createBox(46, 10, 17, randColor);
         base.position.y = 8;
-        car.add(base);
-
-        const cabin = createBox(14, 15, 16, bodyColor);
+        const cabin = createBox(14, 15, 16, randColor);
         cabin.position.set(15, 14.5, 0);
-        car.add(cabin);
-
         const windshield = createBox(3, 7, 14, 0x38BDF8, false, false);
         windshield.position.set(21.2, 16, 0);
-        car.add(windshield);
-
         const cargo = createBox(28, 14, 16, 0xE2E8F0);
         cargo.position.set(-8, 14, 0);
-        car.add(cargo);
+        vehicle.add(base, cabin, windshield, cargo);
 
         [[-16, -9], [-16, 9], [-2, -9], [-2, 9], [15, -9], [15, 9]].forEach(([wx, wz]) => {
           const w = createBox(6.5, 6.5, 3, 0x1E293B);
           w.position.set(wx, 3.5, wz);
-          car.add(w);
+          vehicle.add(w);
+        });
+      } else if (type === 'police') {
+        // 🚨 경찰차 (경광등 교차 점멸)
+        const base = createBox(30, 9, 16, 0x0F172A);
+        base.position.y = 7;
+        const cabin = createBox(17, 7, 13.5, 0xFFFFFF);
+        cabin.position.set(-1, 14, 0);
+        const glass = createBox(17.5, 5, 12, 0x1E293B, false, false);
+        glass.position.set(-1, 14, 0);
+
+        const sirenRed = createBox(3, 3, 4, 0xEF4444, false, false);
+        sirenRed.position.set(-1, 19, -3);
+        const sirenBlue = createBox(3, 3, 4, 0x3B82F6, false, false);
+        sirenBlue.position.set(-1, 19, 3);
+        vehicle.add(base, cabin, glass, sirenRed, sirenBlue);
+        vehicle.sirenRed = sirenRed;
+        vehicle.sirenBlue = sirenBlue;
+
+        [[-9.5, -8.2], [-9.5, 8.2], [9.5, -8.2], [9.5, 8.2]].forEach(([wx, wz]) => {
+          const w = createBox(6, 6, 2.8, 0x1E293B);
+          w.position.set(wx, 3.2, wz);
+          vehicle.add(w);
+        });
+      } else if (type === 'supercar') {
+        // 🏎️ 날렵한 초고속 스포츠카
+        const base = createBox(34, 7, 16, 0xEF4444);
+        base.position.y = 5.5;
+        const cabin = createBox(18, 5, 12, 0x0F172A);
+        cabin.position.set(-2, 11, 0);
+        const spoiler = createBox(4, 5, 15, 0x0F172A);
+        spoiler.position.set(-15, 11, 0);
+        vehicle.add(base, cabin, spoiler);
+
+        [[-11, -8.5], [-11, 8.5], [11, -8.5], [11, 8.5]].forEach(([wx, wz]) => {
+          const w = createBox(5.5, 5.5, 3, 0xD97706);
+          w.position.set(wx, 3, wz);
+          vehicle.add(w);
         });
       }
-      return car;
+
+      vehicle.vehicleType = type;
+      return vehicle;
     }
 
-    // 통나무
     function createLog(length = 56) {
       const log = new THREE.Group();
       const main = createBox(length, 8, 16, COLORS.log);
       main.position.y = 2.5;
       log.add(main);
-
-      // 나무 단면 고리
       [-length / 2 + 0.6, length / 2 - 0.6].forEach(x => {
         const ring = createBox(1.5, 6, 13, COLORS.logCut, false, false);
         ring.position.set(x, 2.5, 0);
@@ -687,7 +904,6 @@
       return log;
     }
 
-    // 연꽃 잎 (수련 패드)
     function createLilyPad() {
       const pad = new THREE.Group();
       const leaf = createBox(18, 1.5, 18, COLORS.lilyPad, false, true);
@@ -696,7 +912,6 @@
       return pad;
     }
 
-    // 회전하는 황금 코인
     function createCoin() {
       const coin = new THREE.Group();
       const body = createBox(7, 7, 2, COLORS.coin);
@@ -705,44 +920,35 @@
       return coin;
     }
 
-    // 초고속 기차 (철길용)
     function createTrain() {
       const train = new THREE.Group();
       const len = 340;
       const body = createBox(len, 24, 18, 0xDC2626);
       body.position.y = 14;
-      train.add(body);
-
       const roof = createBox(len - 10, 4, 16, 0x991B1B);
       roof.position.y = 27.5;
-      train.add(roof);
+      train.add(body, roof);
 
       for (let x = -len / 2 + 30; x < len / 2 - 25; x += 32) {
         const win = createBox(15, 9, 18.5, 0xFEF08A, false, false);
         win.position.set(x, 16, 0);
         train.add(win);
       }
-      const headLight = createBox(3, 7, 7, 0xFEF08A, false, false);
-      headLight.position.set(len / 2, 13, 0);
-      train.add(headLight);
-
+      const light = createBox(3, 7, 7, 0xFEF08A, false, false);
+      light.position.set(len / 2, 13, 0);
+      train.add(light);
       return train;
     }
 
-    // 거대 독수리
     function createEagle() {
       const eagle = new THREE.Group();
       const body = createBox(24, 12, 30, 0x3E2723);
       body.position.y = 8;
-      eagle.add(body);
-
       const head = createBox(11, 11, 12, 0xFFFFFF);
       head.position.set(0, 11, 18);
-      eagle.add(head);
-
       const beak = createBox(5, 5, 8, 0xF59E0B);
       beak.position.set(0, 10, 24);
-      eagle.add(beak);
+      eagle.add(body, head, beak);
 
       const leftWing = createBox(38, 3, 18, 0x271916);
       leftWing.position.set(-28, 10, 0);
@@ -752,12 +958,11 @@
 
       eagle.leftWing = leftWing;
       eagle.rightWing = rightWing;
-
       return eagle;
     }
 
     /* ==========================================================================
-       6. 레인 및 무한 맵 시스템
+       6. 확장된 레인 매니저 (다양한 바이옴, 빙판, 고속도로, 경찰차)
        ========================================================================== */
     class LaneManager {
       constructor() {
@@ -776,7 +981,6 @@
         this.nextLaneIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
 
-        // 시작 안전지대
         for (let i = 0; i < 9; i++) {
           this.createLane('grass', false);
         }
@@ -785,7 +989,7 @@
         }
       }
 
-      pickNextType() {
+      pickNextType(biome) {
         if (this.consecutive >= 4) {
           this.consecutive = 0;
           return this.lastType === 'grass' ? 'road' : 'grass';
@@ -793,10 +997,26 @@
 
         const r = Math.random();
         let t = 'grass';
-        if (r < 0.38) t = 'road';
-        else if (r < 0.68) t = 'river';
-        else if (r < 0.84) t = 'grass';
-        else t = 'rail';
+
+        if (biome.id === 'snow') {
+          // 설원에서는 20% 확률로 밟으면 미끄러지는 '얼음(ice)' 레인 등장!
+          if (r < 0.22) t = 'ice';
+          else if (r < 0.52) t = 'road';
+          else if (r < 0.76) t = 'river';
+          else t = 'grass';
+        } else if (biome.id === 'city') {
+          // 도시에서는 4~5차선 고속도로가 더 빈번히 등장
+          if (r < 0.55) t = 'road';
+          else if (r < 0.72) t = 'rail';
+          else if (r < 0.85) t = 'river';
+          else t = 'grass';
+        } else {
+          // 초원 & 사막
+          if (r < 0.38) t = 'road';
+          else if (r < 0.68) t = 'river';
+          else if (r < 0.84) t = 'grass';
+          else t = 'rail';
+        }
 
         if (t === this.lastType) this.consecutive++;
         else {
@@ -807,25 +1027,32 @@
       }
 
       generateNextLane() {
-        const type = this.pickNextType();
+        const biome = getBiomeForLane(this.nextLaneIndex);
+        const type = this.pickNextType(biome);
         this.createLane(type, true);
       }
 
       createLane(type, canHaveObstacles = true) {
         const z = this.nextLaneIndex * CELL_SIZE;
-        const width = (GRID_COLS + 12) * CELL_SIZE;
+        const width = (GRID_COLS + 14) * CELL_SIZE;
         const laneMesh = new THREE.Group();
         laneMesh.position.set(0, 0, z);
 
-        let gColor = COLORS.grass;
+        const biome = getBiomeForLane(this.nextLaneIndex);
+
+        let gColor = biome.groundColor;
         let gHeight = 8;
         let gY = -4;
 
-        if (type === 'road') gColor = COLORS.road;
+        if (type === 'road') gColor = biome.roadColor;
         else if (type === 'river') {
-          gColor = COLORS.river;
+          gColor = biome.waterColor;
           gHeight = 4.5;
           gY = -6;
+        } else if (type === 'ice') {
+          gColor = COLORS.ice;
+          gHeight = 6;
+          gY = -4.5;
         } else if (type === 'rail') gColor = COLORS.rail;
 
         const ground = createBox(width, gHeight, CELL_SIZE, gColor, false, true);
@@ -836,6 +1063,7 @@
           index: this.nextLaneIndex,
           z: z,
           type: type,
+          biome: biome,
           mesh: laneMesh,
           obstacles: [],
           coins: [],
@@ -849,39 +1077,47 @@
           trainInstance: null
         };
 
-        // 타입별 상세 구성
         if (type === 'grass') {
           if (canHaveObstacles) {
-            // 통로 보장 알고리즘 (최소 2~3개 빈 칸 보장)
-            const blockedCols = new Set();
             const safeCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 6));
-            // safeCol과 인접한 칸은 나무를 심지 않음
             for (let c = -Math.floor(GRID_COLS / 2); c <= Math.floor(GRID_COLS / 2); c++) {
               if (Math.abs(c - safeCol) <= 1) continue;
               if (Math.random() < 0.28) {
-                const tree = createTree();
-                tree.position.x = c * CELL_SIZE;
-                laneMesh.add(tree);
-                laneData.obstacles.push({ type: 'tree', mesh: tree, col: c });
-                blockedCols.add(c);
+                let obsMesh;
+                if (biome.obstacleType === 'cactus') obsMesh = createCactus();
+                else if (biome.obstacleType === 'snowtree') obsMesh = createSnowPine();
+                else if (biome.obstacleType === 'streetlight') obsMesh = createStreetLight();
+                else obsMesh = createTree();
+
+                obsMesh.position.x = c * CELL_SIZE;
+                laneMesh.add(obsMesh);
+                laneData.obstacles.push({ type: 'tree', mesh: obsMesh, col: c });
               }
             }
           }
         } else if (type === 'road') {
           // 차선 줄무늬
           for (let x = -width / 2 + 25; x < width / 2; x += 55) {
-            const stripe = createBox(22, 0.2, 2.5, 0xF8FAFC, false, false);
+            const stripe = createBox(22, 0.2, 2.5, biome.id === 'desert' ? 0xFDE68A : 0xF8FAFC, false, false);
             stripe.position.set(x, 0.1, 0);
             laneMesh.add(stripe);
           }
-          const isTruckLane = Math.random() < 0.35;
-          laneData.speed = (55 + Math.random() * 65) * laneData.direction;
 
-          const count = isTruckLane ? 2 : (2 + Math.floor(Math.random() * 2));
+          // 차량 종류 결정 (일반, 트럭, 경찰차, 스포츠카)
+          let vehicleType = 'car';
+          const rand = Math.random();
+          if (rand < 0.28) vehicleType = 'truck';
+          else if (rand < 0.42 && biome.id === 'city') vehicleType = 'police';
+          else if (rand < 0.55) vehicleType = 'supercar';
+
+          const speedMult = vehicleType === 'supercar' ? 1.6 : (vehicleType === 'police' ? 1.4 : 1.0);
+          laneData.speed = (55 + Math.random() * 65) * speedMult * laneData.direction;
+
+          const count = vehicleType === 'truck' ? 2 : (vehicleType === 'supercar' ? 2 : (2 + Math.floor(Math.random() * 2)));
           const spacing = width / count;
 
           for (let i = 0; i < count; i++) {
-            const vehicle = createVehicle(isTruckLane ? 'truck' : 'car');
+            const vehicle = createVehicle(vehicleType);
             const x = -width / 2 + i * spacing + (Math.random() * 40 - 20);
             vehicle.position.x = x;
             if (laneData.direction < 0) vehicle.rotation.y = Math.PI;
@@ -890,13 +1126,20 @@
             laneData.obstacles.push({
               type: 'vehicle',
               mesh: vehicle,
-              halfWidth: isTruckLane ? 23 : 15,
+              halfWidth: vehicleType === 'truck' ? 24 : (vehicleType === 'supercar' ? 18 : 15),
               halfDepth: 8
             });
           }
+        } else if (type === 'ice') {
+          // ❄️ 빙판 레인 디테일 (얼음 균열 박스)
+          for (let x = -width / 2 + 30; x < width / 2; x += 80) {
+            const crack = createBox(14, 0.2, 8, COLORS.iceCrack, false, false);
+            crack.position.set(x, 0.1, 0);
+            laneMesh.add(crack);
+          }
         } else if (type === 'river') {
-          laneData.speed = (36 + Math.random() * 46) * laneData.direction;
-          const logLen = Math.random() < 0.45 ? 58 : 78;
+          laneData.speed = (36 + Math.random() * 48) * laneData.direction;
+          const logLen = Math.random() < 0.45 ? 58 : 80;
           const count = 3;
           const spacing = width / count;
 
@@ -914,8 +1157,7 @@
             });
           }
 
-          // 가끔 수련 패드 스폰
-          if (Math.random() < 0.35) {
+          if (Math.random() < 0.32) {
             const pad = createLilyPad();
             pad.position.x = (Math.floor(Math.random() * 11) - 5) * CELL_SIZE;
             laneMesh.add(pad);
@@ -927,7 +1169,6 @@
             });
           }
         } else if (type === 'rail') {
-          // 철도 침목 & 레일
           for (let x = -width / 2; x < width / 2; x += 16) {
             const tie = createBox(8, 2, CELL_SIZE - 4, COLORS.railTie, false, true);
             tie.position.set(x, 1, 0);
@@ -939,7 +1180,6 @@
             laneMesh.add(railBar);
           });
 
-          // 좌우 신호등 (경고 교차 점멸)
           const pole = createBox(3.5, 26, 3.5, 0x1E293B);
           pole.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 20, 13, 0);
           laneMesh.add(pole);
@@ -958,10 +1198,9 @@
           laneData.signalLight2 = bulb2;
 
           laneData.trainTimer = 3.5 + Math.random() * 5;
-          laneData.trainSpeed = 440 * laneData.direction;
+          laneData.trainSpeed = 460 * laneData.direction;
         }
 
-        // 코인 스폰 (15% 확률)
         if (canHaveObstacles && Math.random() < 0.16) {
           const coinCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 4));
           const coinMesh = createCoin();
@@ -976,21 +1215,25 @@
       }
 
       update(delta, playerZ) {
-        const width = (GRID_COLS + 12) * CELL_SIZE;
+        const width = (GRID_COLS + 14) * CELL_SIZE;
 
         this.lanes.forEach(lane => {
-          // 코인 회전 애니메이션
           lane.coins.forEach(c => {
-            if (!c.collected) {
-              c.mesh.rotation.y += 3.5 * delta;
-            }
+            if (!c.collected) c.mesh.rotation.y += 3.5 * delta;
           });
 
-          // 도로 및 강물 이동
           if (lane.type === 'road' || lane.type === 'river') {
             lane.obstacles.forEach(obs => {
-              if (obs.type === 'lily') return; // 수련은 고정
+              if (obs.type === 'lily') return;
               obs.mesh.position.x += lane.speed * delta;
+
+              // 경찰차 경광등 애니메이션
+              if (obs.mesh.sirenRed && obs.mesh.sirenBlue) {
+                const flash = Math.sin(Date.now() * 0.03) > 0;
+                obs.mesh.sirenRed.material.color.setHex(flash ? 0xEF4444 : 0x450A0A);
+                obs.mesh.sirenBlue.material.color.setHex(!flash ? 0x3B82F6 : 0x1E3A8A);
+              }
+
               if (lane.direction > 0 && obs.mesh.position.x > width / 2) {
                 obs.mesh.position.x = -width / 2;
               } else if (lane.direction < 0 && obs.mesh.position.x < -width / 2) {
@@ -1000,7 +1243,6 @@
           } else if (lane.type === 'rail') {
             lane.trainTimer -= delta;
 
-            // 기차 도착 1.6초 전부터 경고등 교차 점멸 및 벨소리
             if (lane.trainTimer < 1.6 && lane.trainTimer > 0) {
               lane.trainWarning = true;
               lane.bellTimer -= delta;
@@ -1015,7 +1257,6 @@
               }
             }
 
-            // 기차 진입 & 경적
             if (lane.trainTimer <= 0 && !lane.trainInstance) {
               sfx.playTrainHorn();
               const trainMesh = createTrain();
@@ -1035,6 +1276,7 @@
               const tx = lane.trainInstance.mesh.position.x;
               if ((lane.direction > 0 && tx > width / 2 + 200) || (lane.direction < 0 && tx < -width / 2 - 200)) {
                 lane.mesh.remove(lane.trainInstance.mesh);
+                disposeHierarchy(lane.trainInstance.mesh);
                 lane.trainInstance = null;
                 lane.trainWarning = false;
                 if (lane.signalLight1) lane.signalLight1.material.color.setHex(0x450A0A);
@@ -1045,9 +1287,9 @@
           }
         });
 
-        // 후방 레인 제거 & 전방 레인 스폰
+        // 후방 레인 제거 & 메모리 dispose
         const playerLaneIdx = Math.round(playerZ / CELL_SIZE);
-        while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 15) {
+        while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 16) {
           const old = this.lanes.shift();
           scene.remove(old.mesh);
           disposeHierarchy(old.mesh);
@@ -1063,7 +1305,7 @@
     }
 
     /* ==========================================================================
-       7. 플레이어 시스템 (입력 버퍼링, 쫀득한 점프 & 틸트)
+       7. 플레이어 시스템 (빙판 미끄러짐 물리 추가)
        ========================================================================== */
     class Player {
       constructor() {
@@ -1081,21 +1323,21 @@
         this.mesh.rotation.set(0, 0, 0);
         this.isJumping = false;
         this.jumpProgress = 0;
-        this.jumpDuration = 0.135; // 원작의 쾌속 점프
+        this.jumpDuration = 0.135;
         this.startPos = new THREE.Vector3();
-        this.onPlatform = null; // 통나무 또는 수련잎
+        this.onPlatform = null;
         this.isDead = false;
-        this.queuedMove = null; // 입력 버퍼링!
+        this.queuedMove = null;
         this.idleTime = 0;
+        this.isSliding = false;
+        this.facingDir = { dCol: 0, dLane: 1 };
       }
 
-      // 점프 요청 (입력 버퍼 지원)
       queueMove(dCol, dLane) {
-        if (this.isDead) return;
+        if (this.isDead || this.isSliding) return;
         sfx.init();
 
         if (this.isJumping) {
-          // 이미 점프 중이면 다음 입력을 버퍼에 저장하여 씹힘 방지
           this.queuedMove = { dCol, dLane };
           return;
         }
@@ -1106,22 +1348,19 @@
         const newCol = this.col + dCol;
         const newLane = this.laneIndex + dLane;
 
-        // 좌우 이동 범위 제한
         const maxCol = Math.floor(GRID_COLS / 2);
         if (newCol < -maxCol || newCol > maxCol) return;
 
-        // 나무 장애물 충돌 검사
         const targetLaneObj = laneManager.getLane(newLane);
         if (targetLaneObj && targetLaneObj.type === 'grass') {
           const hasTree = targetLaneObj.obstacles.some(o => o.type === 'tree' && o.col === newCol);
           if (hasTree) {
-            // 나무에 가로막혔을 때 회전만 처리
             this.mesh.rotation.y = Math.atan2(dCol, dLane);
             return;
           }
         }
 
-        // 회전 각도 설정
+        this.facingDir = { dCol, dLane };
         this.mesh.rotation.y = Math.atan2(dCol, dLane);
 
         this.col = newCol;
@@ -1134,14 +1373,11 @@
         this.onPlatform = null;
 
         sfx.playJump();
-
-        // 도약 흙먼지 파티클
-        particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x8CD85D, 4, 18);
+        particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 18);
       }
 
       update(delta) {
         if (this.isDead) return;
-
         this.idleTime += delta;
 
         if (this.isJumping) {
@@ -1154,10 +1390,15 @@
             this.mesh.rotation.x = 0;
             this.mesh.rotation.z = 0;
 
-            // 착지 흙먼지
             particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 15);
 
-            // 버퍼에 대기 중인 다음 이동이 있다면 즉시 실행! (연타 최적화)
+            // ❄️ 빙판(Ice) 착지 시 1칸 자동 미끄러짐 물리!
+            const curLane = laneManager.getLane(this.laneIndex);
+            if (curLane && curLane.type === 'ice' && !this.isSliding) {
+              this.slideForward();
+              return;
+            }
+
             if (this.queuedMove) {
               const { dCol, dLane } = this.queuedMove;
               this.queuedMove = null;
@@ -1166,39 +1407,39 @@
           } else {
             const p = this.jumpProgress;
             this.mesh.position.lerpVectors(this.startPos, this.targetPos, p);
-            // 점프 포물선 (Y축)
-            const jumpH = Math.sin(p * Math.PI) * 16;
-            this.mesh.position.y = jumpH;
+            this.mesh.position.y = Math.sin(p * Math.PI) * 16;
 
-            // 원작 감성의 쫀득한 스쿼시/스트레치 & 날개 펄럭임
             const sq = Math.sin(p * Math.PI);
             this.mesh.scale.set(1 - sq * 0.16, 1 + sq * 0.3, 1 - sq * 0.16);
+            this.mesh.rotation.x = -Math.sin(p * Math.PI) * 0.25;
 
-            // 점프 진행 방향으로 살짝 피치 틸트 (앞으로 기울임)
-            const tilt = Math.sin(p * Math.PI) * 0.25;
-            this.mesh.rotation.x = -tilt;
-
-            // 날개 펄럭
             if (this.mesh.leftWing && this.mesh.rightWing) {
               this.mesh.leftWing.rotation.z = sq * 0.5;
               this.mesh.rightWing.rotation.z = -sq * 0.5;
             }
           }
+        } else if (this.isSliding) {
+          // 빙판 미끄러짐 진행
+          this.slideProgress += delta / 0.14;
+          if (this.slideProgress >= 1) {
+            this.slideProgress = 1;
+            this.isSliding = false;
+            this.mesh.position.copy(this.targetPos);
+          } else {
+            this.mesh.position.lerpVectors(this.startPos, this.targetPos, this.slideProgress);
+            this.mesh.position.y = 0;
+          }
         } else {
-          // 가만히 있을 때의 Idle 호흡 애니메이션
           const breathe = Math.sin(this.idleTime * 4.5) * 0.03;
           this.mesh.scale.set(1 + breathe, 1 - breathe * 1.5, 1 + breathe);
 
-          // 플랫폼(통나무/수련) 탑승 중 이동 동기화
           if (this.onPlatform) {
             if (this.onPlatform.type === 'log') {
               this.mesh.position.x += this.onPlatform.lane.speed * delta;
               this.targetPos.x = this.mesh.position.x;
               this.col = Math.round(this.mesh.position.x / CELL_SIZE);
-              // 발이 통나무 표면 위에 위치하도록 높이 보정
               this.mesh.position.y = 5.5;
 
-              // 강물 좌우 화면 밖 이탈 시 익사
               const maxCol = Math.floor(GRID_COLS / 2) + 2;
               if (Math.abs(this.col) > maxCol) {
                 sfx.playSplash();
@@ -1212,10 +1453,28 @@
           }
         }
       }
+
+      // 빙판 미끄러짐 발동
+      slideForward() {
+        const nextCol = this.col + this.facingDir.dCol;
+        const nextLane = this.laneIndex + this.facingDir.dLane;
+        const maxCol = Math.floor(GRID_COLS / 2);
+        if (nextCol < -maxCol || nextCol > maxCol) return;
+
+        sfx.playSlide();
+        particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, COLORS.iceCrack, 6, 20);
+
+        this.col = nextCol;
+        this.laneIndex = nextLane;
+        this.startPos.copy(this.mesh.position);
+        this.targetPos.set(nextCol * CELL_SIZE, 0, nextLane * CELL_SIZE);
+        this.isSliding = true;
+        this.slideProgress = 0;
+      }
     }
 
     /* ==========================================================================
-       8. 게임 관리자 & 원작 카메라 자동 스크롤 메커니즘
+       8. 게임 관리자 & 동적 바이옴 전환 시스템
        ========================================================================== */
     const laneManager = new LaneManager();
     const player = new Player();
@@ -1224,25 +1483,45 @@
     let score = 0;
     let maxLaneReached = 0;
     let coins = 0;
+    let currentBiome = BIOME_TYPES.grassland;
     let highScore = parseInt(localStorage.getItem('crossy_high_score') || '0', 10);
     document.getElementById('high-score-display').innerText = highScore;
 
     let isGameOver = false;
     let eagleActive = false;
 
-    // 원작의 긴장감을 좌우하는 카메라 추적 및 최소 스크롤 속도
     let cameraZ = 0;
     let cameraMinZ = -CELL_SIZE * 2;
-    const BASE_CAMERA_SPEED = 18; // 플레이어가 가만히 있어도 카메라가 서서히 다가옴
+    const BASE_CAMERA_SPEED = 18;
 
     laneManager.init();
 
+    // 바이옴 전환 확인
+    function updateBiome(laneIdx) {
+      const newBiome = getBiomeForLane(laneIdx);
+      if (newBiome.id !== currentBiome.id) {
+        currentBiome = newBiome;
+        sfx.playStageFanfare();
+
+        // UI 배지 업데이트
+        document.getElementById('biome-badge').innerHTML = `<span>${newBiome.icon}</span> <span>${newBiome.name}</span>`;
+
+        // 중앙 배너 연출
+        const banner = document.getElementById('biome-banner');
+        banner.innerHTML = `${newBiome.icon} ${newBiome.name.toUpperCase()}`;
+        banner.classList.add('show');
+        setTimeout(() => banner.classList.remove('show'), 2200);
+
+        // 환경광 & 하늘/안개 컬러 부드러운 전환
+        scene.background.setHex(newBiome.skyColor);
+        scene.fog.color.setHex(newBiome.fogColor);
+        sunLight.color.setHex(newBiome.sunColor);
+        ambientLight.intensity = newBiome.ambientIntensity;
+      }
+    }
+
     /* ==========================================================================
-       ★ 원작과 일치하는 방향키 및 터치 조작 매핑
-       - 위 / W: 전진 (+Z)
-       - 아래 / S: 후진 (-Z)
-       - 왼쪽 / A: 좌측 이동 (-X)
-       - 오른쪽 / D: 우측 이동 (+X)
+       9. 조작 이벤트 리스너
        ========================================================================== */
     window.addEventListener('keydown', e => {
       sfx.init();
@@ -1257,13 +1536,12 @@
       } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
         player.queueMove(0, -1);
       } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
-        player.queueMove(-1, 0); // 화면상 좌측
+        player.queueMove(-1, 0);
       } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
-        player.queueMove(1, 0);  // 화면상 우측
+        player.queueMove(1, 0);
       }
     });
 
-    // 모바일 스와이프 및 직관적 탭 조작
     let touchStartX = 0, touchStartY = 0;
     window.addEventListener('touchstart', e => {
       touchStartX = e.touches[0].clientX;
@@ -1281,22 +1559,20 @@
       const dist = Math.hypot(dx, dy);
 
       if (dist < 18) {
-        // 가벼운 탭: 전진
         player.queueMove(0, 1);
       } else {
-        // 스와이프 제스처
         if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0) player.queueMove(1, 0);  // 우측
-          else player.queueMove(-1, 0);        // 좌측
+          if (dx > 0) player.queueMove(1, 0);
+          else player.queueMove(-1, 0);
         } else {
-          if (dy > 0) player.queueMove(0, -1); // 후진
-          else player.queueMove(0, 1);         // 전진
+          if (dy > 0) player.queueMove(0, -1);
+          else player.queueMove(0, 1);
         }
       }
     });
 
     /* ==========================================================================
-       9. 충돌 판정 및 독수리 급강하 시스템
+       10. 충돌 판정 & 독수리 급강하
        ========================================================================== */
     function checkCollisions() {
       if (player.isDead) return;
@@ -1304,11 +1580,12 @@
       const currentLane = laneManager.getLane(player.laneIndex);
       if (!currentLane) return;
 
-      // 1. 코인 수집 검사
+      // 1. 코인 수집
       currentLane.coins.forEach(coin => {
         if (!coin.collected && Math.abs(player.mesh.position.x - coin.mesh.position.x) < 14) {
           coin.collected = true;
           currentLane.mesh.remove(coin.mesh);
+          disposeHierarchy(coin.mesh);
           coins++;
           document.getElementById('coin-display').innerText = coins;
           sfx.playCoin();
@@ -1316,7 +1593,7 @@
         }
       });
 
-      // 2. 차량 충돌 (AABB 판정)
+      // 2. 차량 충돌
       if (currentLane.type === 'road') {
         const pX = player.mesh.position.x;
         const pZ = player.mesh.position.z;
@@ -1329,10 +1606,8 @@
             Math.abs(pZ - cZ) < car.halfDepth + 6
           ) {
             sfx.playCrash();
-            // 깃털 파티클 폭발!
             particleSys.create(pX, 8, pZ, 0xFFFFFF, 18, 55);
             particleSys.create(pX, 8, pZ, 0xEF4444, 8, 45);
-            // 닭이 납작해지는 모션
             player.mesh.scale.set(1.6, 0.12, 1.6);
             triggerGameOver('차량에 치였습니다!');
             return;
@@ -1358,8 +1633,8 @@
         }
       }
 
-      // 4. 강물 및 통나무/수련잎 탑승 판정
-      if (currentLane.type === 'river' && !player.isJumping) {
+      // 4. 강물 판정
+      if (currentLane.type === 'river' && !player.isJumping && !player.isSliding) {
         let landed = null;
 
         for (const obs of currentLane.obstacles) {
@@ -1377,9 +1652,8 @@
         if (landed) {
           player.onPlatform = landed;
         } else {
-          // 강물에 풍덩!
           sfx.playSplash();
-          particleSys.create(player.mesh.position.x, 2, currentLane.z, COLORS.river, 16, 40);
+          particleSys.create(player.mesh.position.x, 2, currentLane.z, currentLane.biome.waterColor, 16, 40);
           particleSys.create(player.mesh.position.x, 2, currentLane.z, 0xFFFFFF, 10, 30);
           player.mesh.position.y = -8;
           player.mesh.scale.set(0.5, 0.5, 0.5);
@@ -1387,19 +1661,17 @@
         }
       }
 
-      // 5. 원작의 독수리 메커니즘: 카메라 화면 아래쪽(뒤쪽) 위험선 밖으로 밀려나면 급강하!
+      // 5. 독수리 급강하 판정
       const playerBehindCamera = cameraZ - player.mesh.position.z;
       if (playerBehindCamera > 130 && !eagleActive && !isGameOver) {
         spawnEagle();
       }
     }
 
-    // 독수리 출격
     function spawnEagle() {
       eagleActive = true;
       sfx.playEagleSwoop();
       eagle = createEagle();
-      // 카메라 뒤쪽 저 위에서부터 플레이어를 향해 초고속 급강하
       eagle.position.set(
         player.mesh.position.x,
         80,
@@ -1422,6 +1694,7 @@
       document.getElementById('game-over-reason').innerText = reason;
       document.getElementById('final-score').innerText = score;
       document.getElementById('final-coins').innerText = coins;
+      document.getElementById('final-biome').innerText = currentBiome.name.split(' ')[0];
       document.getElementById('final-high-score').innerText = highScore;
       document.getElementById('game-over-modal').style.display = 'flex';
     }
@@ -1430,6 +1703,7 @@
       document.getElementById('game-over-modal').style.display = 'none';
       if (eagle) {
         scene.remove(eagle);
+        disposeHierarchy(eagle);
         eagle = null;
       }
       eagleActive = false;
@@ -1443,10 +1717,14 @@
       maxLaneReached = 0;
       cameraZ = 0;
       cameraMinZ = -CELL_SIZE * 2;
+      currentBiome = BIOME_TYPES.grassland;
+      updateBiome(0);
+
       document.getElementById('score-display').innerText = '0';
     }
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+
     const muteBtn = document.getElementById('mute-btn');
     if (muteBtn) {
       muteBtn.addEventListener('click', e => {
@@ -1457,9 +1735,8 @@
       });
     }
 
-
     /* ==========================================================================
-       10. 메인 루프 & 원작 카메라 트래킹 (Auto-scroll + Lerp)
+       11. 메인 렌더 루프
        ========================================================================== */
     const clock = new THREE.Clock();
     const cameraTarget = new THREE.Vector3();
@@ -1473,22 +1750,19 @@
       laneManager.update(delta, player.mesh.position.z);
       checkCollisions();
 
-      // 점수 업데이트 (최대 전진 레인)
       if (player.laneIndex > maxLaneReached) {
         maxLaneReached = player.laneIndex;
         score = maxLaneReached;
         document.getElementById('score-display').innerText = score;
+        updateBiome(player.laneIndex);
       }
 
-      // 카메라 스크롤: 최소 전진 속도(서서히 자동 전진) + 플레이어 전진 추적
       if (!isGameOver) {
         cameraMinZ += BASE_CAMERA_SPEED * delta;
-        // 플레이어가 앞으로 나가면 카메라도 부드럽게 앞으로 전진
         const targetZ = Math.max(cameraMinZ, player.mesh.position.z + 10);
         cameraZ += (targetZ - cameraZ) * 0.08;
       }
 
-      // 독수리 낚아채기 애니메이션
       if (eagleActive && eagle) {
         eagle.position.z += 620 * delta;
         eagle.position.y = Math.max(12, eagle.position.y - 160 * delta);
@@ -1499,7 +1773,6 @@
           eagle.rightWing.rotation.z = -flap;
         }
 
-        // 닭을 낚아채서 화면 밖으로 데려감
         if (Math.abs(eagle.position.z - player.mesh.position.z) < 22) {
           triggerGameOver('독수리에게 낚아채였습니다!');
           player.mesh.position.copy(eagle.position);
@@ -1509,14 +1782,11 @@
 
         if (eagle.position.z > player.mesh.position.z + 350) {
           scene.remove(eagle);
+          disposeHierarchy(eagle);
           eagle = null;
         }
       }
 
-      /* 
-         ★ 카메라 위치 업데이트:
-         카메라 타겟은 플레이어의 X 위치를 살짝 감쇠 추종 + 카메라 Z 기준점
-      */
       const desiredLookAt = new THREE.Vector3(
         player.mesh.position.x * 0.45,
         0,
@@ -1531,7 +1801,6 @@
       );
       camera.lookAt(cameraTarget);
 
-      // 태양광 조명도 카메라와 함께 이동하여 안정적인 그림자 유지
       sunLight.position.set(
         cameraTarget.x - 180,
         cameraTarget.y + 420,
@@ -1545,7 +1814,6 @@
 
     animate();
 
-    // 화면 리사이즈 대응
     window.addEventListener('resize', () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
