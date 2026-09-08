@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Crossy Road 3D</title>
   <style>
     * {
@@ -14,7 +14,7 @@
     }
     body {
       overflow: hidden;
-      background: #87CEEB;
+      background: #73C9EA;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     }
     #game-container {
@@ -37,50 +37,59 @@
       padding: 24px;
       z-index: 10;
     }
-    .score-board {
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      width: 100%;
     }
-    .score-box {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(8px);
-      padding: 12px 24px;
+    .score-container {
+      display: flex;
+      gap: 14px;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 10px 22px;
       border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      border: 2px solid rgba(255, 255, 255, 0.95);
     }
-    .score-label {
-      font-size: 13px;
-      font-weight: 700;
+    .label {
+      font-size: 12px;
+      font-weight: 800;
       color: #64748b;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
-    .score-value {
-      font-size: 38px;
+    .val {
+      font-size: 36px;
       font-weight: 900;
       color: #0f172a;
       line-height: 1.1;
     }
-    .high-score-val {
-      font-size: 26px;
-      color: #f59e0b;
+    .coin-val {
+      color: #eab308;
     }
-    .control-hint {
+    .high-val {
+      color: #f97316;
+      font-size: 24px;
+    }
+    .bottom-hint {
       align-self: center;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(15, 23, 42, 0.65);
       color: #ffffff;
-      padding: 8px 18px;
-      border-radius: 20px;
+      padding: 9px 20px;
+      border-radius: 24px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.5px;
-      animation: pulse 2s infinite ease-in-out;
+      backdrop-filter: blur(6px);
+      animation: pulseHint 2.4s infinite ease-in-out;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.85; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.97); }
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.9; transform: translateY(0); }
+      50% { opacity: 0.45; transform: translateY(2px); }
     }
     #game-over-modal {
       position: absolute;
@@ -89,44 +98,44 @@
       width: 100%;
       height: 100%;
       background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 20;
+      z-index: 25;
       pointer-events: auto;
     }
     .modal-card {
       background: #ffffff;
-      border-radius: 28px;
-      padding: 36px 44px;
+      border-radius: 30px;
+      padding: 36px 42px;
       text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
       max-width: 360px;
       width: 90%;
       animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     @keyframes popIn {
-      from { transform: scale(0.7); opacity: 0; }
+      from { transform: scale(0.65); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
     .modal-title {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 900;
       color: #ef4444;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .modal-reason {
       font-size: 15px;
       font-weight: 600;
       color: #64748b;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
     .modal-scores {
       background: #f8fafc;
-      border-radius: 18px;
-      padding: 16px;
+      border-radius: 20px;
+      padding: 16px 20px;
       margin-bottom: 24px;
       border: 1px solid #e2e8f0;
     }
@@ -134,13 +143,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 6px 0;
+      margin: 8px 0;
       font-size: 16px;
       font-weight: 700;
-      color: #334155;
+      color: #475569;
     }
     .modal-row strong {
-      font-size: 22px;
+      font-size: 24px;
       color: #0f172a;
     }
     .restart-btn {
@@ -151,15 +160,15 @@
       padding: 16px;
       font-size: 18px;
       font-weight: 800;
-      border-radius: 16px;
+      border-radius: 18px;
       cursor: pointer;
-      box-shadow: 0 8px 16px rgba(34, 197, 94, 0.35);
+      box-shadow: 0 10px 20px rgba(34, 197, 94, 0.38);
       transition: all 0.15s ease;
     }
     .restart-btn:hover {
       background: #16a34a;
       transform: translateY(-2px);
-      box-shadow: 0 12px 20px rgba(34, 197, 94, 0.45);
+      box-shadow: 0 14px 24px rgba(34, 197, 94, 0.45);
     }
     .restart-btn:active {
       transform: translateY(1px);
@@ -167,11 +176,12 @@
     .key-tag {
       display: inline-block;
       background: #e2e8f0;
-      padding: 2px 6px;
-      border-radius: 6px;
+      padding: 4px 8px;
+      border-radius: 8px;
       font-size: 12px;
-      color: #475569;
-      margin-top: 10px;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 12px;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -180,39 +190,52 @@
   <div id="game-container"></div>
 
   <div id="ui">
-    <div class="score-board">
-      <div class="score-box">
-        <div class="score-label">DISTANCE</div>
-        <div id="score-display" class="score-value">0</div>
+    <div class="top-bar">
+      <div class="score-container">
+        <div class="glass-card">
+          <div class="label">SCORE</div>
+          <div id="score-display" class="val">0</div>
+        </div>
+        <div class="glass-card">
+          <div class="label">COINS</div>
+          <div id="coin-display" class="val coin-val">0</div>
+        </div>
       </div>
-      <div class="score-box" style="text-align: right;">
-        <div class="score-label">BEST</div>
-        <div id="high-score-display" class="score-value high-score-val">0</div>
+      <div class="glass-card" style="text-align: right;">
+        <div class="label">TOP</div>
+        <div id="high-score-display" class="val high-val">0</div>
       </div>
     </div>
-    <div class="control-hint">방향키(↑ ↓ ← →) 또는 WASD로 이동</div>
+    <div class="bottom-hint">화면 터치(스와이프/탭) 또는 방향키(↑ ↓ ← →)로 점프!</div>
   </div>
 
   <div id="game-over-modal">
     <div class="modal-card">
       <div class="modal-title">GAME OVER</div>
-      <div id="game-over-reason" class="modal-reason">차량에 부딪혔습니다!</div>
+      <div id="game-over-reason" class="modal-reason">차량에 치였습니다!</div>
       <div class="modal-scores">
         <div class="modal-row">
           <span>최종 점수</span>
           <strong id="final-score">0</strong>
         </div>
         <div class="modal-row">
+          <span>획득 코인</span>
+          <strong id="final-coins" style="color:#eab308;">0</strong>
+        </div>
+        <div class="modal-row">
           <span>최고 기록</span>
-          <strong id="final-high-score" style="color:#f59e0b;">0</strong>
+          <strong id="final-high-score" style="color:#f97316;">0</strong>
         </div>
       </div>
-      <button id="restart-btn" class="restart-btn">다시 시작하기</button>
-      <div class="key-tag">Space 키 또는 화면 터치로 즉시 재시작</div>
+      <button id="restart-btn" class="restart-btn">다시 도전하기</button>
+      <div class="key-tag">Space 키 또는 화면을 터치해 즉시 재시작</div>
     </div>
   </div>
 
   <script>
+    /* ==========================================================================
+       1. 고품질 Web Audio API 신디사이저 (원작 아케이드 감성)
+       ========================================================================== */
     class SoundFX {
       constructor() {
         this.ctx = null;
@@ -226,145 +249,257 @@
           this.ctx.resume();
         }
       }
+      // 경쾌하고 통통 튀는 팝 점프음
       playJump() {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(220, now);
-        osc.frequency.exponentialRampToValueAtTime(540, now + 0.12);
-        gain.gain.setValueAtTime(0.25, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.frequency.setValueAtTime(260 + Math.random() * 40, now);
+        osc.frequency.exponentialRampToValueAtTime(620, now + 0.09);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.13);
+        osc.stop(now + 0.1);
       }
+      // 강물에 퐁당 빠지는 소리
       playSplash() {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(320, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(90, now + 0.22);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.26);
+        osc.stop(now + 0.23);
       }
+      // 쾅! 하는 묵직한 차량 충돌음
       playCrash() {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        const bufferSize = this.ctx.sampleRate * 0.25;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.28);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
         }
         const noise = this.ctx.createBufferSource();
         noise.buffer = buffer;
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(600, now);
+        filter.frequency.setValueAtTime(700, now);
+        filter.frequency.exponentialRampToValueAtTime(100, now + 0.28);
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
         noise.connect(filter);
         filter.connect(gain);
         gain.connect(this.ctx.destination);
         noise.start(now);
       }
+      // 철도 신호등 경고음 땡! 땡!
+      playCrossingBell() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, now);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+      }
+      // 초고속 기차 굉음 & 경적
       playTrainHorn() {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        [280, 350].forEach(freq => {
+        [293, 370, 440].forEach(f => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.12, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+          osc.frequency.setValueAtTime(f, now);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.72);
+          osc.stop(now + 0.66);
         });
       }
+      // 독수리 급강하 쉬이익-!
       playEagleSwoop() {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.linearRampToValueAtTime(300, now + 0.4);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(950, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.45);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.42);
+        osc.stop(now + 0.46);
+      }
+      // 코인 획득 쨍그랑!
+      playCoin() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [987, 1318].forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.25, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.16);
+        });
       }
     }
     const sfx = new SoundFX();
 
-    const CELL_SIZE = 24;
-    const GRID_COLS = 19;
+    /* ==========================================================================
+       2. 원작 팔레트 및 지형 규격 설정
+       ========================================================================== */
+    const CELL_SIZE = 26;
+    const GRID_COLS = 21; // -10 ~ +10
     const LANE_START_OFFSET = -8;
-    const TOTAL_LANES_BUFFER = 45;
+    const TOTAL_LANES_BUFFER = 48;
 
+    // 원작 Crossy Road 고유의 부드럽고 따뜻한 복셀 컬러톤
     const COLORS = {
-      grass: 0x62B94A,
-      road: 0x374151,
-      river: 0x38BDF8,
+      grass: 0x8CD85D,
+      grassDark: 0x7BC94C,
+      road: 0x3F4652,
+      river: 0x48BFE3,
+      waterFoam: 0x64DFDF,
       rail: 0x78716C,
-      treeLeaves: [0x22C55E, 0x16A34A, 0x15803D],
-      carColors: [0xEF4444, 0x3B82F6, 0xF59E0B, 0x8B5CF6, 0xEC4899, 0x10B981, 0xF97316],
-      train: 0xDC2626
+      railTie: 0x543D2B,
+      railSteel: 0xD1D5DB,
+      log: 0xA0632E,
+      logCut: 0xDC9E60,
+      lilyPad: 0x57CC99,
+      coin: 0xFACC15,
+      treeLeaves: [0x48B02C, 0x389E20, 0x58C438],
+      treeTrunk: 0x704214,
+      carColors: [0xEF4444, 0x3B82F6, 0xF59E0B, 0xEC4899, 0x8B5CF6, 0x10B981, 0x06B6D4]
     };
 
+    /* ==========================================================================
+       3. 씬 및 원작 고유 쿼터뷰 아이소메트릭 카메라 (Isometric Camera)
+       ========================================================================== */
     const container = document.getElementById('game-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xA5F3FC);
-    scene.fog = new THREE.Fog(0xA5F3FC, 300, 750);
+    scene.background = new THREE.Color(0x7FD2F5);
+    scene.fog = new THREE.Fog(0x7FD2F5, 360, 850);
 
     const aspect = window.innerWidth / window.innerHeight;
-    const d = 260;
+    const d = 280;
     const camera = new THREE.OrthographicCamera(
-      -d * aspect, d * aspect, d, -d, -1000, 2000
+      -d * aspect, d * aspect, d, -d, -1000, 2500
     );
 
-    camera.position.set(280, 420, 280);
+    /* 
+       ★ 원작 Crossy Road의 정통 아이소메트릭 시점 공식:
+       - 플레이어 진행 방향: +Z (화면 우상단으로 올라가는 방향)
+       - 레인 가로 방향: X축 (화면 좌상단 <-> 우하단으로 길게 가로지름)
+       - 카메라 위치: 플레이어의 뒤쪽(-Z)과 약간 왼쪽(-X) 위(+Y)에서 내려다봄!
+    */
+    const CAMERA_OFFSET = new THREE.Vector3(-240, 340, -240);
+    camera.position.copy(CAMERA_OFFSET);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    // 은은한 앰비언트 라이트 + 따뜻한 태양광(DirectionalLight)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-    dirLight.position.set(150, 400, 100);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.left = -350;
-    dirLight.shadow.camera.right = 350;
-    dirLight.shadow.camera.top = 350;
-    dirLight.shadow.camera.bottom = -350;
-    dirLight.shadow.camera.near = 50;
-    dirLight.shadow.camera.far = 800;
-    dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 0.88);
+    sunLight.position.set(-180, 420, -100);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.left = -400;
+    sunLight.shadow.camera.right = 400;
+    sunLight.shadow.camera.top = 400;
+    sunLight.shadow.camera.bottom = -400;
+    sunLight.shadow.camera.near = 50;
+    sunLight.shadow.camera.far = 1000;
+    sunLight.shadow.bias = -0.0008;
+    scene.add(sunLight);
 
+    /* ==========================================================================
+       4. 파티클 이펙트 시스템 (깃털, 물보라, 흙먼지)
+       ========================================================================== */
+    class ParticleSystem {
+      constructor() {
+        this.particles = [];
+      }
+      create(x, y, z, color, count = 10, speed = 40) {
+        for (let i = 0; i < count; i++) {
+          const size = 2 + Math.random() * 2.5;
+          const geo = new THREE.BoxGeometry(size, size, size);
+          const mat = new THREE.MeshBasicMaterial({ color });
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.set(x, y, z);
+          scene.add(mesh);
+
+          const vel = new THREE.Vector3(
+            (Math.random() - 0.5) * speed,
+            15 + Math.random() * speed * 0.8,
+            (Math.random() - 0.5) * speed
+          );
+          this.particles.push({ mesh, vel, life: 0.6, maxLife: 0.6 });
+        }
+      }
+      update(delta) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.life -= delta;
+          if (p.life <= 0) {
+            scene.remove(p.mesh);
+            p.mesh.geometry.dispose();
+            p.mesh.material.dispose();
+            this.particles.splice(i, 1);
+          } else {
+            p.vel.y -= 140 * delta; // 중력
+            p.mesh.position.addScaledVector(p.vel, delta);
+            const scale = p.life / p.maxLife;
+            p.mesh.scale.set(scale, scale, scale);
+          }
+        }
+      }
+      clear() {
+        this.particles.forEach(p => scene.remove(p.mesh));
+        this.particles = [];
+      }
+    }
+    const particleSys = new ParticleSystem();
+
+    /* ==========================================================================
+       5. 3D 복셀 모델 생성 유틸리티
+       ========================================================================== */
     function createBox(w, h, d, color, cast = true, receive = true) {
       const geo = new THREE.BoxGeometry(w, h, d);
       const mat = new THREE.MeshLambertMaterial({ color });
@@ -374,183 +509,227 @@
       return mesh;
     }
 
+    // 원작 디테일을 살린 닭 캐릭터 (날개 펄럭임 포함)
     function createChicken() {
-      const chicken = new THREE.Group();
+      const group = new THREE.Group();
 
-      const body = createBox(14, 14, 15, 0xFFFFFF);
-      body.position.y = 11;
-      chicken.add(body);
+      // 몸통
+      const body = createBox(15, 15, 16, 0xFFFFFF);
+      body.position.y = 12;
+      group.add(body);
 
+      // 빨간 볏
       const comb = createBox(4, 5, 8, 0xEF4444);
-      comb.position.set(0, 20, -1);
-      chicken.add(comb);
+      comb.position.set(0, 21.5, 0);
+      group.add(comb);
 
-      const beak = createBox(6, 4, 5, 0xF97316);
-      beak.position.set(0, 11, 9);
-      chicken.add(beak);
+      // 노란 부리
+      const beak = createBox(6, 4, 6, 0xF97316);
+      beak.position.set(0, 12, 10);
+      group.add(beak);
 
-      const wattle = createBox(3, 4, 2, 0xEF4444);
-      wattle.position.set(0, 8, 8);
-      chicken.add(wattle);
+      // 턱 벼슬
+      const wattle = createBox(3, 4, 3, 0xEF4444);
+      wattle.position.set(0, 8.5, 9);
+      group.add(wattle);
 
-      [-5.5, 5.5].forEach(x => {
+      // 눈
+      [-6, 6].forEach(x => {
         const eye = createBox(2, 2.5, 2, 0x0F172A, false, false);
-        eye.position.set(x, 13, 6);
-        chicken.add(eye);
+        eye.position.set(x, 14, 7);
+        group.add(eye);
       });
 
-      [-7.5, 7.5].forEach(x => {
-        const wing = createBox(2, 8, 10, 0xF8FAFC);
-        wing.position.set(x, 10, 0);
-        chicken.add(wing);
+      // 좌우 날개
+      const leftWing = createBox(2, 8, 10, 0xF8FAFC);
+      leftWing.position.set(-8.5, 11, 0);
+      group.add(leftWing);
+
+      const rightWing = createBox(2, 8, 10, 0xF8FAFC);
+      rightWing.position.set(8.5, 11, 0);
+      group.add(rightWing);
+
+      // 다리
+      [-4.5, 4.5].forEach(x => {
+        const leg = createBox(2.2, 5.5, 2.2, 0xF59E0B);
+        leg.position.set(x, 2.75, 0);
+        group.add(leg);
       });
 
-      [-4, 4].forEach(x => {
-        const leg = createBox(2, 5, 2, 0xF59E0B);
-        leg.position.set(x, 2.5, 0);
-        chicken.add(leg);
-      });
+      group.leftWing = leftWing;
+      group.rightWing = rightWing;
+      group.body = body;
 
-      return chicken;
+      return group;
     }
 
+    // 복셀 나무 (랜덤 형태)
     function createTree() {
       const tree = new THREE.Group();
-      const trunkH = 10 + Math.random() * 4;
-      const trunk = createBox(6, trunkH, 6, 0x78350F);
+      const trunkH = 12 + Math.random() * 6;
+      const trunk = createBox(7, trunkH, 7, COLORS.treeTrunk);
       trunk.position.y = trunkH / 2;
       tree.add(trunk);
 
       const leafColor = COLORS.treeLeaves[Math.floor(Math.random() * COLORS.treeLeaves.length)];
       const layers = 2 + Math.floor(Math.random() * 2);
-      let yOffset = trunkH;
-      let size = 18;
+      let y = trunkH;
+      let size = 20;
 
       for (let i = 0; i < layers; i++) {
-        const leafBox = createBox(size, 8, size, leafColor);
-        leafBox.position.y = yOffset + 4;
-        tree.add(leafBox);
-        yOffset += 7;
-        size -= 4;
+        const layerBox = createBox(size, 9, size, leafColor);
+        layerBox.position.y = y + 4.5;
+        tree.add(layerBox);
+        y += 7.5;
+        size -= 4.5;
       }
       return tree;
     }
 
-    function createVehicle(isTruck = false, customColor = null) {
+    // 원작풍 복셀 차량 (승용차/소형차/트럭)
+    function createVehicle(type = 'car', customColor = null) {
       const car = new THREE.Group();
       const bodyColor = customColor || COLORS.carColors[Math.floor(Math.random() * COLORS.carColors.length)];
 
-      if (!isTruck) {
-        const base = createBox(28, 9, 15, bodyColor);
+      if (type === 'car') {
+        const base = createBox(30, 9, 16, bodyColor);
         base.position.y = 7;
         car.add(base);
 
-        const cabin = createBox(16, 7, 13, 0xE2E8F0);
+        const cabin = createBox(17, 7, 13.5, 0xF1F5F9);
         cabin.position.set(-1, 14, 0);
         car.add(cabin);
 
-        const glass = createBox(16.5, 5, 11.5, 0x334155, false, false);
+        const glass = createBox(17.5, 5, 12, 0x334155, false, false);
         glass.position.set(-1, 14, 0);
         car.add(glass);
+
+        [[-9.5, -8.2], [-9.5, 8.2], [9.5, -8.2], [9.5, 8.2]].forEach(([wx, wz]) => {
+          const w = createBox(6, 6, 2.8, 0x1E293B);
+          w.position.set(wx, 3.2, wz);
+          car.add(w);
+        });
       } else {
-        const base = createBox(42, 10, 16, bodyColor);
+        // 대형 트럭
+        const base = createBox(46, 10, 17, bodyColor);
         base.position.y = 8;
         car.add(base);
 
-        const cabin = createBox(13, 14, 15, bodyColor);
-        cabin.position.set(13, 13, 0);
+        const cabin = createBox(14, 15, 16, bodyColor);
+        cabin.position.set(15, 14.5, 0);
         car.add(cabin);
 
-        const windshield = createBox(3, 6, 13, 0x38BDF8, false, false);
-        windshield.position.set(19.6, 15, 0);
+        const windshield = createBox(3, 7, 14, 0x38BDF8, false, false);
+        windshield.position.set(21.2, 16, 0);
         car.add(windshield);
 
-        const cargo = createBox(26, 13, 15, 0xE2E8F0);
-        cargo.position.set(-7, 13, 0);
+        const cargo = createBox(28, 14, 16, 0xE2E8F0);
+        cargo.position.set(-8, 14, 0);
         car.add(cargo);
+
+        [[-16, -9], [-16, 9], [-2, -9], [-2, 9], [15, -9], [15, 9]].forEach(([wx, wz]) => {
+          const w = createBox(6.5, 6.5, 3, 0x1E293B);
+          w.position.set(wx, 3.5, wz);
+          car.add(w);
+        });
       }
-
-      const wheelOffsets = isTruck
-        ? [[-14, -8], [-14, 8], [0, -8], [0, 8], [14, -8], [14, 8]]
-        : [[-9, -7.5], [-9, 7.5], [9, -7.5], [9, 7.5]];
-
-      wheelOffsets.forEach(([wx, wz]) => {
-        const wheel = createBox(5.5, 5.5, 2.5, 0x1E293B);
-        wheel.position.set(wx, 3, wz);
-        car.add(wheel);
-      });
-
       return car;
     }
 
-    function createLog(length = 50) {
+    // 통나무
+    function createLog(length = 56) {
       const log = new THREE.Group();
-      const main = createBox(length, 7, 15, 0x92400E);
-      main.position.y = 2;
+      const main = createBox(length, 8, 16, COLORS.log);
+      main.position.y = 2.5;
       log.add(main);
 
-      const end1 = createBox(2, 5, 12, 0xD97706, false, false);
-      end1.position.set(-length / 2 + 0.5, 2, 0);
-      const end2 = createBox(2, 5, 12, 0xD97706, false, false);
-      end2.position.set(length / 2 - 0.5, 2, 0);
-      log.add(end1, end2);
-
+      // 나무 단면 고리
+      [-length / 2 + 0.6, length / 2 - 0.6].forEach(x => {
+        const ring = createBox(1.5, 6, 13, COLORS.logCut, false, false);
+        ring.position.set(x, 2.5, 0);
+        log.add(ring);
+      });
       return log;
     }
 
+    // 연꽃 잎 (수련 패드)
+    function createLilyPad() {
+      const pad = new THREE.Group();
+      const leaf = createBox(18, 1.5, 18, COLORS.lilyPad, false, true);
+      leaf.position.y = 0.5;
+      pad.add(leaf);
+      return pad;
+    }
+
+    // 회전하는 황금 코인
+    function createCoin() {
+      const coin = new THREE.Group();
+      const body = createBox(7, 7, 2, COLORS.coin);
+      body.position.y = 8;
+      coin.add(body);
+      return coin;
+    }
+
+    // 초고속 기차 (철길용)
     function createTrain() {
       const train = new THREE.Group();
-      const length = 280;
-      const body = createBox(length, 22, 17, COLORS.train);
-      body.position.y = 13;
+      const len = 340;
+      const body = createBox(len, 24, 18, 0xDC2626);
+      body.position.y = 14;
       train.add(body);
 
-      const roof = createBox(length - 8, 3, 15, 0xB91C1C);
-      roof.position.y = 25;
+      const roof = createBox(len - 10, 4, 16, 0x991B1B);
+      roof.position.y = 27.5;
       train.add(roof);
 
-      for (let x = -length / 2 + 25; x < length / 2 - 20; x += 30) {
-        const win = createBox(14, 8, 17.5, 0xFEF08A, false, false);
-        win.position.set(x, 15, 0);
+      for (let x = -len / 2 + 30; x < len / 2 - 25; x += 32) {
+        const win = createBox(15, 9, 18.5, 0xFEF08A, false, false);
+        win.position.set(x, 16, 0);
         train.add(win);
       }
-
-      const light = createBox(3, 6, 6, 0xFEF08A, false, false);
-      light.position.set(length / 2, 12, 0);
-      train.add(light);
+      const headLight = createBox(3, 7, 7, 0xFEF08A, false, false);
+      headLight.position.set(len / 2, 13, 0);
+      train.add(headLight);
 
       return train;
     }
 
+    // 거대 독수리
     function createEagle() {
       const eagle = new THREE.Group();
-      const body = createBox(20, 10, 24, 0x451A03);
-      body.position.y = 5;
+      const body = createBox(24, 12, 30, 0x3E2723);
+      body.position.y = 8;
       eagle.add(body);
 
-      const head = createBox(9, 9, 9, 0xFFFFFF);
-      head.position.set(0, 8, 14);
+      const head = createBox(11, 11, 12, 0xFFFFFF);
+      head.position.set(0, 11, 18);
       eagle.add(head);
 
-      const beak = createBox(4, 4, 6, 0xF59E0B);
-      beak.position.set(0, 7, 18);
+      const beak = createBox(5, 5, 8, 0xF59E0B);
+      beak.position.set(0, 10, 24);
       eagle.add(beak);
 
-      const leftWing = createBox(30, 2, 14, 0x361502);
-      leftWing.position.set(-22, 7, 0);
-      const rightWing = createBox(30, 2, 14, 0x361502);
-      rightWing.position.set(22, 7, 0);
+      const leftWing = createBox(38, 3, 18, 0x271916);
+      leftWing.position.set(-28, 10, 0);
+      const rightWing = createBox(38, 3, 18, 0x271916);
+      rightWing.position.set(28, 10, 0);
       eagle.add(leftWing, rightWing);
+
+      eagle.leftWing = leftWing;
+      eagle.rightWing = rightWing;
 
       return eagle;
     }
 
+    /* ==========================================================================
+       6. 레인 및 무한 맵 시스템
+       ========================================================================== */
     class LaneManager {
       constructor() {
         this.lanes = [];
         this.nextLaneIndex = LANE_START_OFFSET;
-        this.consecutiveTypeCount = 0;
         this.lastType = 'grass';
+        this.consecutive = 0;
       }
 
       init() {
@@ -559,6 +738,7 @@
         this.nextLaneIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
 
+        // 시작 안전지대
         for (let i = 0; i < 9; i++) {
           this.createLane('grass', false);
         }
@@ -568,25 +748,24 @@
       }
 
       pickNextType() {
-        if (this.consecutiveTypeCount >= 4) {
-          this.consecutiveTypeCount = 0;
+        if (this.consecutive >= 4) {
+          this.consecutive = 0;
           return this.lastType === 'grass' ? 'road' : 'grass';
         }
 
-        const rand = Math.random();
-        let chosen = 'grass';
-        if (rand < 0.35) chosen = 'road';
-        else if (rand < 0.65) chosen = 'river';
-        else if (rand < 0.82) chosen = 'grass';
-        else chosen = 'rail';
+        const r = Math.random();
+        let t = 'grass';
+        if (r < 0.38) t = 'road';
+        else if (r < 0.68) t = 'river';
+        else if (r < 0.84) t = 'grass';
+        else t = 'rail';
 
-        if (chosen === this.lastType) {
-          this.consecutiveTypeCount++;
-        } else {
-          this.consecutiveTypeCount = 1;
-          this.lastType = chosen;
+        if (t === this.lastType) this.consecutive++;
+        else {
+          this.consecutive = 1;
+          this.lastType = t;
         }
-        return chosen;
+        return t;
       }
 
       generateNextLane() {
@@ -596,23 +775,23 @@
 
       createLane(type, canHaveObstacles = true) {
         const z = this.nextLaneIndex * CELL_SIZE;
-        const width = (GRID_COLS + 10) * CELL_SIZE;
+        const width = (GRID_COLS + 12) * CELL_SIZE;
         const laneMesh = new THREE.Group();
         laneMesh.position.set(0, 0, z);
 
-        let groundColor = COLORS.grass;
-        let groundHeight = 8;
-        let groundY = -4;
+        let gColor = COLORS.grass;
+        let gHeight = 8;
+        let gY = -4;
 
-        if (type === 'road') groundColor = COLORS.road;
+        if (type === 'road') gColor = COLORS.road;
         else if (type === 'river') {
-          groundColor = COLORS.river;
-          groundHeight = 4;
-          groundY = -6;
-        } else if (type === 'rail') groundColor = COLORS.rail;
+          gColor = COLORS.river;
+          gHeight = 4.5;
+          gY = -6;
+        } else if (type === 'rail') gColor = COLORS.rail;
 
-        const ground = createBox(width, groundHeight, CELL_SIZE, groundColor, false, true);
-        ground.position.y = groundY;
+        const ground = createBox(width, gHeight, CELL_SIZE, gColor, false, true);
+        ground.position.y = gY;
         laneMesh.add(ground);
 
         const laneData = {
@@ -621,101 +800,136 @@
           type: type,
           mesh: laneMesh,
           obstacles: [],
+          coins: [],
           speed: 0,
           direction: Math.random() < 0.5 ? 1 : -1,
           trainWarning: false,
           trainTimer: 0,
-          signalLight: null
+          bellTimer: 0,
+          signalLight1: null,
+          signalLight2: null,
+          trainInstance: null
         };
 
+        // 타입별 상세 구성
         if (type === 'grass') {
           if (canHaveObstacles) {
+            // 통로 보장 알고리즘 (최소 2~3개 빈 칸 보장)
+            const blockedCols = new Set();
+            const safeCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 6));
+            // safeCol과 인접한 칸은 나무를 심지 않음
             for (let c = -Math.floor(GRID_COLS / 2); c <= Math.floor(GRID_COLS / 2); c++) {
-              if (Math.random() < 0.22) {
+              if (Math.abs(c - safeCol) <= 1) continue;
+              if (Math.random() < 0.28) {
                 const tree = createTree();
                 tree.position.x = c * CELL_SIZE;
                 laneMesh.add(tree);
-                laneData.obstacles.push({
-                  type: 'tree',
-                  mesh: tree,
-                  col: c
-                });
+                laneData.obstacles.push({ type: 'tree', mesh: tree, col: c });
+                blockedCols.add(c);
               }
             }
           }
         } else if (type === 'road') {
-          for (let x = -width / 2 + 30; x < width / 2; x += 50) {
-            const stripe = createBox(20, 0.2, 2, 0xF1F5F9, false, false);
+          // 차선 줄무늬
+          for (let x = -width / 2 + 25; x < width / 2; x += 55) {
+            const stripe = createBox(22, 0.2, 2.5, 0xF8FAFC, false, false);
             stripe.position.set(x, 0.1, 0);
             laneMesh.add(stripe);
           }
-          laneData.speed = (50 + Math.random() * 70) * laneData.direction;
           const isTruckLane = Math.random() < 0.35;
-          const numCars = 2 + Math.floor(Math.random() * 2);
-          const spacing = width / numCars;
+          laneData.speed = (55 + Math.random() * 65) * laneData.direction;
 
-          for (let i = 0; i < numCars; i++) {
-            const vehicle = createVehicle(isTruckLane);
-            const xPos = -width / 2 + i * spacing + (Math.random() * 40 - 20);
-            vehicle.position.x = xPos;
+          const count = isTruckLane ? 2 : (2 + Math.floor(Math.random() * 2));
+          const spacing = width / count;
+
+          for (let i = 0; i < count; i++) {
+            const vehicle = createVehicle(isTruckLane ? 'truck' : 'car');
+            const x = -width / 2 + i * spacing + (Math.random() * 40 - 20);
+            vehicle.position.x = x;
             if (laneData.direction < 0) vehicle.rotation.y = Math.PI;
             laneMesh.add(vehicle);
 
             laneData.obstacles.push({
               type: 'vehicle',
               mesh: vehicle,
-              isTruck: isTruckLane,
-              halfWidth: isTruckLane ? 21 : 14,
-              halfDepth: 7.5
+              halfWidth: isTruckLane ? 23 : 15,
+              halfDepth: 8
             });
           }
         } else if (type === 'river') {
-          laneData.speed = (35 + Math.random() * 50) * laneData.direction;
-          const logLen = Math.random() < 0.5 ? 56 : 76;
-          const numLogs = 3;
-          const spacing = width / numLogs;
+          laneData.speed = (36 + Math.random() * 46) * laneData.direction;
+          const logLen = Math.random() < 0.45 ? 58 : 78;
+          const count = 3;
+          const spacing = width / count;
 
-          for (let i = 0; i < numLogs; i++) {
+          for (let i = 0; i < count; i++) {
             const log = createLog(logLen);
-            const xPos = -width / 2 + i * spacing + (Math.random() * 30);
-            log.position.x = xPos;
+            const x = -width / 2 + i * spacing + (Math.random() * 35);
+            log.position.x = x;
             laneMesh.add(log);
 
             laneData.obstacles.push({
               type: 'log',
               mesh: log,
-              length: logLen,
               halfWidth: logLen / 2,
-              halfDepth: 7.5
+              halfDepth: 8
+            });
+          }
+
+          // 가끔 수련 패드 스폰
+          if (Math.random() < 0.35) {
+            const pad = createLilyPad();
+            pad.position.x = (Math.floor(Math.random() * 11) - 5) * CELL_SIZE;
+            laneMesh.add(pad);
+            laneData.obstacles.push({
+              type: 'lily',
+              mesh: pad,
+              halfWidth: 9,
+              halfDepth: 9
             });
           }
         } else if (type === 'rail') {
+          // 철도 침목 & 레일
           for (let x = -width / 2; x < width / 2; x += 16) {
-            const tie = createBox(8, 2, CELL_SIZE - 4, 0x451A03, false, true);
+            const tie = createBox(8, 2, CELL_SIZE - 4, COLORS.railTie, false, true);
             tie.position.set(x, 1, 0);
             laneMesh.add(tie);
           }
-          [-4, 4].forEach(zOff => {
-            const railBar = createBox(width, 2.5, 2, 0xD6D3D1, true, false);
-            railBar.position.set(0, 2.5, zOff);
+          [-4.5, 4.5].forEach(zOff => {
+            const railBar = createBox(width, 2.8, 2, COLORS.railSteel, true, false);
+            railBar.position.set(0, 2.8, zOff);
             laneMesh.add(railBar);
           });
 
-          const signalPole = createBox(3, 24, 3, 0x1E293B);
-          signalPole.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 18, 12, 0);
-          laneMesh.add(signalPole);
+          // 좌우 신호등 (경고 교차 점멸)
+          const pole = createBox(3.5, 26, 3.5, 0x1E293B);
+          pole.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 20, 13, 0);
+          laneMesh.add(pole);
 
-          const signalLamp = createBox(5, 7, 5, 0x475569);
-          signalLamp.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 18, 24, 0);
-          laneMesh.add(signalLamp);
+          const lampBox = createBox(6, 8, 6, 0x334155);
+          lampBox.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 20, 26, 0);
+          laneMesh.add(lampBox);
 
-          const redBulb = createBox(2, 3, 3, 0x450A0A, false, false);
-          redBulb.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 15, 24, 0);
-          laneMesh.add(redBulb);
-          laneData.signalLight = redBulb;
+          const bulb1 = createBox(2, 3, 3, 0x450A0A, false, false);
+          bulb1.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 17, 27, -1.8);
+          const bulb2 = createBox(2, 3, 3, 0x450A0A, false, false);
+          bulb2.position.set(-Math.floor(GRID_COLS / 2) * CELL_SIZE - 17, 27, 1.8);
+          laneMesh.add(bulb1, bulb2);
 
-          laneData.trainTimer = 2.5 + Math.random() * 4;
-          laneData.trainSpeed = 380 * laneData.direction;
+          laneData.signalLight1 = bulb1;
+          laneData.signalLight2 = bulb2;
+
+          laneData.trainTimer = 3.5 + Math.random() * 5;
+          laneData.trainSpeed = 440 * laneData.direction;
+        }
+
+        // 코인 스폰 (15% 확률)
+        if (canHaveObstacles && Math.random() < 0.16) {
+          const coinCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 4));
+          const coinMesh = createCoin();
+          coinMesh.position.x = coinCol * CELL_SIZE;
+          laneMesh.add(coinMesh);
+          laneData.coins.push({ mesh: coinMesh, col: coinCol, collected: false });
         }
 
         scene.add(laneMesh);
@@ -724,11 +938,20 @@
       }
 
       update(delta, playerZ) {
-        const width = (GRID_COLS + 10) * CELL_SIZE;
+        const width = (GRID_COLS + 12) * CELL_SIZE;
 
         this.lanes.forEach(lane => {
+          // 코인 회전 애니메이션
+          lane.coins.forEach(c => {
+            if (!c.collected) {
+              c.mesh.rotation.y += 3.5 * delta;
+            }
+          });
+
+          // 도로 및 강물 이동
           if (lane.type === 'road' || lane.type === 'river') {
             lane.obstacles.forEach(obs => {
+              if (obs.type === 'lily') return; // 수련은 고정
               obs.mesh.position.x += lane.speed * delta;
               if (lane.direction > 0 && obs.mesh.position.x > width / 2) {
                 obs.mesh.position.x = -width / 2;
@@ -739,49 +962,57 @@
           } else if (lane.type === 'rail') {
             lane.trainTimer -= delta;
 
-            if (lane.trainTimer < 1.4 && !lane.trainWarning) {
+            // 기차 도착 1.6초 전부터 경고등 교차 점멸 및 벨소리
+            if (lane.trainTimer < 1.6 && lane.trainTimer > 0) {
               lane.trainWarning = true;
-              sfx.playTrainHorn();
+              lane.bellTimer -= delta;
+              if (lane.bellTimer <= 0) {
+                sfx.playCrossingBell();
+                lane.bellTimer = 0.28;
+              }
+              const blink = Math.sin(Date.now() * 0.025) > 0;
+              if (lane.signalLight1 && lane.signalLight2) {
+                lane.signalLight1.material.color.setHex(blink ? 0xEF4444 : 0x450A0A);
+                lane.signalLight2.material.color.setHex(!blink ? 0xEF4444 : 0x450A0A);
+              }
             }
 
-            if (lane.trainWarning && lane.signalLight) {
-              const blink = Math.sin(Date.now() * 0.02) > 0;
-              lane.signalLight.material.color.setHex(blink ? 0xEF4444 : 0x450A0A);
-            }
-
+            // 기차 진입 & 경적
             if (lane.trainTimer <= 0 && !lane.trainInstance) {
+              sfx.playTrainHorn();
               const trainMesh = createTrain();
-              trainMesh.position.x = lane.direction > 0 ? -width / 2 - 140 : width / 2 + 140;
+              trainMesh.position.x = lane.direction > 0 ? -width / 2 - 170 : width / 2 + 170;
               if (lane.direction < 0) trainMesh.rotation.y = Math.PI;
               lane.mesh.add(trainMesh);
 
               lane.trainInstance = {
                 mesh: trainMesh,
-                halfWidth: 140,
-                halfDepth: 8.5
+                halfWidth: 170,
+                halfDepth: 9.5
               };
             }
 
             if (lane.trainInstance) {
               lane.trainInstance.mesh.position.x += lane.trainSpeed * delta;
-              const tX = lane.trainInstance.mesh.position.x;
-              if ((lane.direction > 0 && tX > width / 2 + 180) || (lane.direction < 0 && tX < -width / 2 - 180)) {
+              const tx = lane.trainInstance.mesh.position.x;
+              if ((lane.direction > 0 && tx > width / 2 + 200) || (lane.direction < 0 && tx < -width / 2 - 200)) {
                 lane.mesh.remove(lane.trainInstance.mesh);
                 lane.trainInstance = null;
                 lane.trainWarning = false;
-                if (lane.signalLight) lane.signalLight.material.color.setHex(0x450A0A);
-                lane.trainTimer = 4 + Math.random() * 6;
+                if (lane.signalLight1) lane.signalLight1.material.color.setHex(0x450A0A);
+                if (lane.signalLight2) lane.signalLight2.material.color.setHex(0x450A0A);
+                lane.trainTimer = 4.5 + Math.random() * 6;
               }
             }
           }
         });
 
+        // 후방 레인 제거 & 전방 레인 스폰
         const playerLaneIdx = Math.round(playerZ / CELL_SIZE);
-        while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 14) {
+        while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 15) {
           const old = this.lanes.shift();
           scene.remove(old.mesh);
         }
-
         while (this.lanes.length < TOTAL_LANES_BUFFER) {
           this.generateNextLane();
         }
@@ -792,6 +1023,9 @@
       }
     }
 
+    /* ==========================================================================
+       7. 플레이어 시스템 (입력 버퍼링, 쫀득한 점프 & 틸트)
+       ========================================================================== */
     class Player {
       constructor() {
         this.mesh = createChicken();
@@ -805,37 +1039,52 @@
         this.targetPos = new THREE.Vector3(0, 0, 0);
         this.mesh.position.set(0, 0, 0);
         this.mesh.scale.set(1, 1, 1);
-        this.mesh.rotation.y = 0;
+        this.mesh.rotation.set(0, 0, 0);
         this.isJumping = false;
         this.jumpProgress = 0;
-        this.jumpDuration = 0.16;
+        this.jumpDuration = 0.135; // 원작의 쾌속 점프
         this.startPos = new THREE.Vector3();
-        this.onLog = null;
+        this.onPlatform = null; // 통나무 또는 수련잎
         this.isDead = false;
-        this.idleTimer = 0;
+        this.queuedMove = null; // 입력 버퍼링!
+        this.idleTime = 0;
       }
 
-      move(dCol, dLane) {
-        if (this.isJumping || this.isDead) return;
-
+      // 점프 요청 (입력 버퍼 지원)
+      queueMove(dCol, dLane) {
+        if (this.isDead) return;
         sfx.init();
 
+        if (this.isJumping) {
+          // 이미 점프 중이면 다음 입력을 버퍼에 저장하여 씹힘 방지
+          this.queuedMove = { dCol, dLane };
+          return;
+        }
+        this.executeMove(dCol, dLane);
+      }
+
+      executeMove(dCol, dLane) {
         const newCol = this.col + dCol;
         const newLane = this.laneIndex + dLane;
 
+        // 좌우 이동 범위 제한
         const maxCol = Math.floor(GRID_COLS / 2);
         if (newCol < -maxCol || newCol > maxCol) return;
 
+        // 나무 장애물 충돌 검사
         const targetLaneObj = laneManager.getLane(newLane);
         if (targetLaneObj && targetLaneObj.type === 'grass') {
           const hasTree = targetLaneObj.obstacles.some(o => o.type === 'tree' && o.col === newCol);
           if (hasTree) {
+            // 나무에 가로막혔을 때 회전만 처리
             this.mesh.rotation.y = Math.atan2(dCol, dLane);
             return;
           }
         }
 
+        // 회전 각도 설정
         this.mesh.rotation.y = Math.atan2(dCol, dLane);
+
         this.col = newCol;
         this.laneIndex = newLane;
         this.startPos.copy(this.mesh.position);
@@ -843,16 +1092,18 @@
 
         this.isJumping = true;
         this.jumpProgress = 0;
-        this.onLog = null;
-        this.idleTimer = 0;
+        this.onPlatform = null;
 
         sfx.playJump();
+
+        // 도약 흙먼지 파티클
+        particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x8CD85D, 4, 18);
       }
 
       update(delta) {
         if (this.isDead) return;
 
-        this.idleTimer += delta;
+        this.idleTime += delta;
 
         if (this.isJumping) {
           this.jumpProgress += delta / this.jumpDuration;
@@ -861,63 +1112,126 @@
             this.isJumping = false;
             this.mesh.position.copy(this.targetPos);
             this.mesh.scale.set(1, 1, 1);
+            this.mesh.rotation.x = 0;
+            this.mesh.rotation.z = 0;
+
+            // 착지 흙먼지
+            particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 15);
+
+            // 버퍼에 대기 중인 다음 이동이 있다면 즉시 실행! (연타 최적화)
+            if (this.queuedMove) {
+              const { dCol, dLane } = this.queuedMove;
+              this.queuedMove = null;
+              this.executeMove(dCol, dLane);
+            }
           } else {
-            this.mesh.position.lerpVectors(this.startPos, this.targetPos, this.jumpProgress);
             const p = this.jumpProgress;
-            this.mesh.position.y = Math.sin(p * Math.PI) * 16;
+            this.mesh.position.lerpVectors(this.startPos, this.targetPos, p);
+            // 점프 포물선 (Y축)
+            const jumpH = Math.sin(p * Math.PI) * 16;
+            this.mesh.position.y = jumpH;
 
-            const squash = Math.sin(p * Math.PI);
-            this.mesh.scale.set(1 - squash * 0.15, 1 + squash * 0.25, 1 - squash * 0.15);
+            // 원작 감성의 쫀득한 스쿼시/스트레치 & 날개 펄럭임
+            const sq = Math.sin(p * Math.PI);
+            this.mesh.scale.set(1 - sq * 0.16, 1 + sq * 0.3, 1 - sq * 0.16);
+
+            // 점프 진행 방향으로 살짝 피치 틸트 (앞으로 기울임)
+            const tilt = Math.sin(p * Math.PI) * 0.25;
+            this.mesh.rotation.x = -tilt;
+
+            // 날개 펄럭
+            if (this.mesh.leftWing && this.mesh.rightWing) {
+              this.mesh.leftWing.rotation.z = sq * 0.5;
+              this.mesh.rightWing.rotation.z = -sq * 0.5;
+            }
           }
-        } else if (this.onLog) {
-          this.mesh.position.x += this.onLog.lane.speed * delta;
-          this.targetPos.x = this.mesh.position.x;
-          this.col = Math.round(this.mesh.position.x / CELL_SIZE);
+        } else {
+          // 가만히 있을 때의 Idle 호흡 애니메이션
+          const breathe = Math.sin(this.idleTime * 4.5) * 0.03;
+          this.mesh.scale.set(1 + breathe, 1 - breathe * 1.5, 1 + breathe);
 
-          const maxCol = Math.floor(GRID_COLS / 2) + 2;
-          if (Math.abs(this.col) > maxCol) {
-            triggerGameOver('화면 밖으로 떠내려갔습니다!');
+          // 플랫폼(통나무/수련) 탑승 중 이동 동기화
+          if (this.onPlatform) {
+            if (this.onPlatform.type === 'log') {
+              this.mesh.position.x += this.onPlatform.lane.speed * delta;
+              this.targetPos.x = this.mesh.position.x;
+              this.col = Math.round(this.mesh.position.x / CELL_SIZE);
+              // 발이 통나무 표면 위에 위치하도록 높이 보정
+              this.mesh.position.y = 5.5;
+
+              // 강물 좌우 화면 밖 이탈 시 익사
+              const maxCol = Math.floor(GRID_COLS / 2) + 2;
+              if (Math.abs(this.col) > maxCol) {
+                sfx.playSplash();
+                triggerGameOver('화면 밖으로 떠내려갔습니다!');
+              }
+            } else if (this.onPlatform.type === 'lily') {
+              this.mesh.position.y = 1;
+            }
+          } else {
+            this.mesh.position.y = 0;
           }
         }
       }
     }
 
+    /* ==========================================================================
+       8. 게임 관리자 & 원작 카메라 자동 스크롤 메커니즘
+       ========================================================================== */
     const laneManager = new LaneManager();
     const player = new Player();
     let eagle = null;
 
     let score = 0;
-    let maxDistance = 0;
+    let maxLaneReached = 0;
+    let coins = 0;
     let highScore = parseInt(localStorage.getItem('crossy_high_score') || '0', 10);
     document.getElementById('high-score-display').innerText = highScore;
 
     let isGameOver = false;
     let eagleActive = false;
 
+    // 원작의 긴장감을 좌우하는 카메라 추적 및 최소 스크롤 속도
+    let cameraZ = 0;
+    let cameraMinZ = -CELL_SIZE * 2;
+    const BASE_CAMERA_SPEED = 18; // 플레이어가 가만히 있어도 카메라가 서서히 다가옴
+
     laneManager.init();
 
+    /* ==========================================================================
+       ★ 원작과 일치하는 방향키 및 터치 조작 매핑
+       - 위 / W: 전진 (+Z)
+       - 아래 / S: 후진 (-Z)
+       - 왼쪽 / A: 좌측 이동 (-X)
+       - 오른쪽 / D: 우측 이동 (+X)
+       ========================================================================== */
     window.addEventListener('keydown', e => {
       sfx.init();
 
       if (isGameOver) {
-        if (e.code === 'Space' || e.code === 'Enter') {
-          restartGame();
-        }
+        if (e.code === 'Space' || e.code === 'Enter') restartGame();
         return;
       }
 
-      if (['ArrowUp', 'KeyW'].includes(e.code)) player.move(0, 1);
-      else if (['ArrowDown', 'KeyS'].includes(e.code)) player.move(0, -1);
-      else if (['ArrowLeft', 'KeyA'].includes(e.code)) player.move(1, 0);
-      else if (['ArrowRight', 'KeyD'].includes(e.code)) player.move(-1, 0);
+      if (['ArrowUp', 'KeyW'].includes(e.code)) {
+        player.queueMove(0, 1);
+      } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
+        player.queueMove(0, -1);
+      } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
+        player.queueMove(-1, 0); // 화면상 좌측
+      } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
+        player.queueMove(1, 0);  // 화면상 우측
+      }
     });
 
+    // 모바일 스와이프 및 직관적 탭 조작
     let touchStartX = 0, touchStartY = 0;
     window.addEventListener('touchstart', e => {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       sfx.init();
-    });
+    }, { passive: true });
+
     window.addEventListener('touchend', e => {
       if (isGameOver) {
         restartGame();
@@ -927,100 +1241,131 @@
       const dy = e.changedTouches[0].clientY - touchStartY;
       const dist = Math.hypot(dx, dy);
 
-      if (dist < 15) {
-        player.move(0, 1);
+      if (dist < 18) {
+        // 가벼운 탭: 전진
+        player.queueMove(0, 1);
       } else {
+        // 스와이프 제스처
         if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0) player.move(-1, 0);
-          else player.move(1, 0);
+          if (dx > 0) player.queueMove(1, 0);  // 우측
+          else player.queueMove(-1, 0);        // 좌측
         } else {
-          if (dy > 0) player.move(0, -1);
-          else player.move(0, 1);
+          if (dy > 0) player.queueMove(0, -1); // 후진
+          else player.queueMove(0, 1);         // 전진
         }
       }
     });
 
+    /* ==========================================================================
+       9. 충돌 판정 및 독수리 급강하 시스템
+       ========================================================================== */
     function checkCollisions() {
       if (player.isDead) return;
 
       const currentLane = laneManager.getLane(player.laneIndex);
       if (!currentLane) return;
 
+      // 1. 코인 수집 검사
+      currentLane.coins.forEach(coin => {
+        if (!coin.collected && Math.abs(player.mesh.position.x - coin.mesh.position.x) < 14) {
+          coin.collected = true;
+          currentLane.mesh.remove(coin.mesh);
+          coins++;
+          document.getElementById('coin-display').innerText = coins;
+          sfx.playCoin();
+          particleSys.create(player.mesh.position.x, 8, currentLane.z, COLORS.coin, 8, 28);
+        }
+      });
+
+      // 2. 차량 충돌 (AABB 판정)
       if (currentLane.type === 'road') {
-        const pBox = {
-          minX: player.mesh.position.x - 5,
-          maxX: player.mesh.position.x + 5,
-          minZ: player.mesh.position.z - 5,
-          maxZ: player.mesh.position.z + 5
-        };
+        const pX = player.mesh.position.x;
+        const pZ = player.mesh.position.z;
 
         for (const car of currentLane.obstacles) {
           const cX = car.mesh.position.x;
           const cZ = currentLane.z;
           if (
-            pBox.maxX > cX - car.halfWidth &&
-            pBox.minX < cX + car.halfWidth &&
-            pBox.maxZ > cZ - car.halfDepth &&
-            pBox.minZ < cZ + car.halfDepth
+            Math.abs(pX - cX) < car.halfWidth + 6 &&
+            Math.abs(pZ - cZ) < car.halfDepth + 6
           ) {
             sfx.playCrash();
+            // 깃털 파티클 폭발!
+            particleSys.create(pX, 8, pZ, 0xFFFFFF, 18, 55);
+            particleSys.create(pX, 8, pZ, 0xEF4444, 8, 45);
+            // 닭이 납작해지는 모션
+            player.mesh.scale.set(1.6, 0.12, 1.6);
             triggerGameOver('차량에 치였습니다!');
-            player.mesh.scale.set(1.4, 0.15, 1.4);
             return;
           }
         }
       }
 
+      // 3. 기차 충돌
       if (currentLane.type === 'rail' && currentLane.trainInstance) {
         const train = currentLane.trainInstance;
         const tX = train.mesh.position.x;
         const tZ = currentLane.z;
         if (
-          Math.abs(player.mesh.position.x - tX) < train.halfWidth &&
-          Math.abs(player.mesh.position.z - tZ) < train.halfDepth
+          Math.abs(player.mesh.position.x - tX) < train.halfWidth + 6 &&
+          Math.abs(player.mesh.position.z - tZ) < train.halfDepth + 6
         ) {
           sfx.playCrash();
-          triggerGameOver('초고속 기차에 치였습니다!');
-          player.mesh.scale.set(1.6, 0.1, 1.6);
+          particleSys.create(player.mesh.position.x, 10, tZ, 0xFFFFFF, 24, 70);
+          particleSys.create(player.mesh.position.x, 10, tZ, 0xEF4444, 12, 60);
+          player.mesh.scale.set(1.8, 0.08, 1.8);
+          triggerGameOver('초고속 열차에 치였습니다!');
           return;
         }
       }
 
+      // 4. 강물 및 통나무/수련잎 탑승 판정
       if (currentLane.type === 'river' && !player.isJumping) {
-        let landedOnLog = null;
+        let landed = null;
 
-        for (const log of currentLane.obstacles) {
-          const logX = log.mesh.position.x;
-          const logZ = currentLane.z;
+        for (const obs of currentLane.obstacles) {
+          const ox = obs.mesh.position.x;
+          const oz = currentLane.z;
           if (
-            Math.abs(player.mesh.position.x - logX) < log.halfWidth + 4 &&
-            Math.abs(player.mesh.position.z - logZ) < log.halfDepth + 2
+            Math.abs(player.mesh.position.x - ox) < obs.halfWidth + 3 &&
+            Math.abs(player.mesh.position.z - oz) < obs.halfDepth + 3
           ) {
-            landedOnLog = { log: log, lane: currentLane };
+            landed = { type: obs.type, obs: obs, lane: currentLane };
             break;
           }
         }
 
-        if (landedOnLog) {
-          player.onLog = landedOnLog;
+        if (landed) {
+          player.onPlatform = landed;
         } else {
+          // 강물에 풍덩!
           sfx.playSplash();
-          triggerGameOver('강물에 빠졌습니다!');
+          particleSys.create(player.mesh.position.x, 2, currentLane.z, COLORS.river, 16, 40);
+          particleSys.create(player.mesh.position.x, 2, currentLane.z, 0xFFFFFF, 10, 30);
           player.mesh.position.y = -8;
-          player.mesh.scale.set(0.6, 0.6, 0.6);
+          player.mesh.scale.set(0.5, 0.5, 0.5);
+          triggerGameOver('강물에 빠졌습니다!');
         }
       }
 
-      if (player.idleTimer > 5.5 && !eagleActive && !isGameOver) {
+      // 5. 원작의 독수리 메커니즘: 카메라 화면 아래쪽(뒤쪽) 위험선 밖으로 밀려나면 급강하!
+      const playerBehindCamera = cameraZ - player.mesh.position.z;
+      if (playerBehindCamera > 130 && !eagleActive && !isGameOver) {
         spawnEagle();
       }
     }
 
+    // 독수리 출격
     function spawnEagle() {
       eagleActive = true;
       sfx.playEagleSwoop();
       eagle = createEagle();
-      eagle.position.set(player.mesh.position.x, 70, player.mesh.position.z - 260);
+      // 카메라 뒤쪽 저 위에서부터 플레이어를 향해 초고속 급강하
+      eagle.position.set(
+        player.mesh.position.x,
+        80,
+        player.mesh.position.z - 280
+      );
       scene.add(eagle);
     }
 
@@ -1037,6 +1382,7 @@
 
       document.getElementById('game-over-reason').innerText = reason;
       document.getElementById('final-score').innerText = score;
+      document.getElementById('final-coins').innerText = coins;
       document.getElementById('final-high-score').innerText = highScore;
       document.getElementById('game-over-modal').style.display = 'flex';
     }
@@ -1052,74 +1398,105 @@
 
       player.reset();
       laneManager.init();
+      particleSys.clear();
 
       score = 0;
-      maxDistance = 0;
+      maxLaneReached = 0;
+      cameraZ = 0;
+      cameraMinZ = -CELL_SIZE * 2;
       document.getElementById('score-display').innerText = '0';
     }
 
     document.getElementById('restart-btn').addEventListener('click', restartGame);
 
+    /* ==========================================================================
+       10. 메인 루프 & 원작 카메라 트래킹 (Auto-scroll + Lerp)
+       ========================================================================== */
     const clock = new THREE.Clock();
-    const cameraOffset = new THREE.Vector3(260, 380, 260);
     const cameraTarget = new THREE.Vector3();
 
     function animate() {
       requestAnimationFrame(animate);
       const delta = Math.min(clock.getDelta(), 0.1);
 
+      particleSys.update(delta);
       player.update(delta);
       laneManager.update(delta, player.mesh.position.z);
       checkCollisions();
 
-      if (player.laneIndex > maxDistance) {
-        maxDistance = player.laneIndex;
-        score = maxDistance;
+      // 점수 업데이트 (최대 전진 레인)
+      if (player.laneIndex > maxLaneReached) {
+        maxLaneReached = player.laneIndex;
+        score = maxLaneReached;
         document.getElementById('score-display').innerText = score;
       }
 
-      if (eagleActive && eagle) {
-        eagle.position.z += 520 * delta;
-        eagle.position.y = Math.max(12, eagle.position.y - 140 * delta);
+      // 카메라 스크롤: 최소 전진 속도(서서히 자동 전진) + 플레이어 전진 추적
+      if (!isGameOver) {
+        cameraMinZ += BASE_CAMERA_SPEED * delta;
+        // 플레이어가 앞으로 나가면 카메라도 부드럽게 앞으로 전진
+        const targetZ = Math.max(cameraMinZ, player.mesh.position.z + 10);
+        cameraZ += (targetZ - cameraZ) * 0.08;
+      }
 
-        if (Math.abs(eagle.position.z - player.mesh.position.z) < 15) {
+      // 독수리 낚아채기 애니메이션
+      if (eagleActive && eagle) {
+        eagle.position.z += 620 * delta;
+        eagle.position.y = Math.max(12, eagle.position.y - 160 * delta);
+
+        if (eagle.leftWing && eagle.rightWing) {
+          const flap = Math.sin(Date.now() * 0.03) * 0.4;
+          eagle.leftWing.rotation.z = flap;
+          eagle.rightWing.rotation.z = -flap;
+        }
+
+        // 닭을 낚아채서 화면 밖으로 데려감
+        if (Math.abs(eagle.position.z - player.mesh.position.z) < 22) {
           triggerGameOver('독수리에게 낚아채였습니다!');
           player.mesh.position.copy(eagle.position);
-          player.mesh.position.y -= 6;
+          player.mesh.position.y -= 7;
+          particleSys.create(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z, 0xFFFFFF, 8, 30);
         }
-        if (eagle.position.z > player.mesh.position.z + 300) {
+
+        if (eagle.position.z > player.mesh.position.z + 350) {
           scene.remove(eagle);
           eagle = null;
         }
       }
 
-      const targetLook = new THREE.Vector3(
-        player.mesh.position.x * 0.4,
+      /* 
+         ★ 카메라 위치 업데이트:
+         카메라 타겟은 플레이어의 X 위치를 살짝 감쇠 추종 + 카메라 Z 기준점
+      */
+      const desiredLookAt = new THREE.Vector3(
+        player.mesh.position.x * 0.45,
         0,
-        player.mesh.position.z + 35
+        cameraZ + 40
       );
-      cameraTarget.lerp(targetLook, 0.08);
+      cameraTarget.lerp(desiredLookAt, 0.1);
 
       camera.position.set(
-        cameraTarget.x + cameraOffset.x,
-        cameraTarget.y + cameraOffset.y,
-        cameraTarget.z + cameraOffset.z
+        cameraTarget.x + CAMERA_OFFSET.x,
+        cameraTarget.y + CAMERA_OFFSET.y,
+        cameraTarget.z + CAMERA_OFFSET.z
       );
       camera.lookAt(cameraTarget);
 
-      dirLight.position.set(
-        cameraTarget.x + 150,
-        cameraTarget.y + 400,
-        cameraTarget.z + 100
+      // 태양광 조명도 카메라와 함께 이동하여 안정적인 그림자 유지
+      sunLight.position.set(
+        cameraTarget.x - 180,
+        cameraTarget.y + 420,
+        cameraTarget.z - 100
       );
-      dirLight.target.position.copy(cameraTarget);
-      dirLight.target.updateMatrixWorld();
+      sunLight.target.position.copy(cameraTarget);
+      sunLight.target.updateMatrixWorld();
 
       renderer.render(scene, camera);
     }
 
     animate();
 
+    // 화면 리사이즈 대응
     window.addEventListener('resize', () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
