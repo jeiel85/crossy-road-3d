@@ -2184,9 +2184,9 @@
       } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
         player.queueMove(0, -1);
       } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
-        player.queueMove(-1, 0);
+        player.queueMove(1, 0); // 화면 좌측으로 이동 (World +X)
       } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
-        player.queueMove(1, 0);
+        player.queueMove(-1, 0); // 화면 우측으로 이동 (World -X)
       }
     });
 
@@ -2212,8 +2212,8 @@
         player.queueMove(0, 1);
       } else {
         if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0) player.queueMove(1, 0);
-          else player.queueMove(-1, 0);
+          if (dx > 0) player.queueMove(-1, 0); // 우측 스와이프 -> 화면 우측 이동 (World -X)
+          else player.queueMove(1, 0);        // 좌측 스와이프 -> 화면 좌측 이동 (World +X)
         } else {
           if (dy > 0) player.queueMove(0, -1);
           else player.queueMove(0, 1);
