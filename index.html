@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Crossy Road 3D - Expanded Edition</title>
+  <title>Crossy Road 3D - Multi-Character Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -35,7 +35,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 24px;
+      padding: 20px;
       z-index: 10;
     }
     .top-bar {
@@ -43,16 +43,17 @@
       justify-content: space-between;
       align-items: flex-start;
       width: 100%;
+      gap: 10px;
     }
     .score-container {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .glass-card {
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
-      padding: 10px 20px;
+      padding: 8px 18px;
       border-radius: 18px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
       border: 2px solid rgba(255, 255, 255, 0.95);
@@ -65,7 +66,7 @@
       text-transform: uppercase;
     }
     .val {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: 900;
       color: #0f172a;
       line-height: 1.1;
@@ -75,7 +76,30 @@
     }
     .high-val {
       color: #f97316;
-      font-size: 22px;
+      font-size: 20px;
+    }
+    .btn-action {
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      padding: 10px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    }
+    .btn-action:active {
+      transform: translateY(1px);
     }
     .biome-badge {
       display: inline-flex;
@@ -121,9 +145,9 @@
       align-self: center;
       background: rgba(15, 23, 42, 0.65);
       color: #ffffff;
-      padding: 9px 20px;
+      padding: 8px 18px;
       border-radius: 24px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
       backdrop-filter: blur(6px);
@@ -133,28 +157,30 @@
       0%, 100% { opacity: 0.9; transform: translateY(0); }
       50% { opacity: 0.45; transform: translateY(2px); }
     }
-    #game-over-modal {
+
+    /* 모달 공통 스타일 */
+    .modal-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.68);
+      background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(12px);
       display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 25;
+      z-index: 30;
       pointer-events: auto;
     }
     .modal-card {
       background: #ffffff;
       border-radius: 32px;
-      padding: 36px 44px;
+      padding: 32px 36px;
       text-align: center;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
-      max-width: 380px;
+      max-width: 440px;
       width: 92%;
       animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -163,17 +189,72 @@
       to { transform: scale(1); opacity: 1; }
     }
     .modal-title {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 900;
-      color: #ef4444;
+      color: #0f172a;
       margin-bottom: 6px;
     }
-    .modal-reason {
-      font-size: 15px;
+    .modal-subtitle {
+      font-size: 14px;
       font-weight: 600;
       color: #64748b;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
+
+    /* 캐릭터 그리드 카드 */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+      max-height: 50vh;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .char-item {
+      background: #f8fafc;
+      border: 3px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 14px 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .char-item:hover {
+      border-color: #3b82f6;
+      transform: translateY(-3px);
+      background: #eff6ff;
+    }
+    .char-item.selected {
+      border-color: #22c55e;
+      background: #f0fdf4;
+      box-shadow: 0 8px 16px rgba(34, 197, 94, 0.25);
+    }
+    .char-emoji {
+      font-size: 38px;
+      line-height: 1;
+    }
+    .char-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+    .char-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .char-item.selected .char-badge {
+      background: #22c55e;
+      color: #ffffff;
+    }
+
     .modal-scores {
       background: #f8fafc;
       border-radius: 20px;
@@ -194,25 +275,24 @@
       font-size: 24px;
       color: #0f172a;
     }
-    .restart-btn {
+    .btn-primary {
       width: 100%;
       background: #22c55e;
       color: #ffffff;
       border: none;
-      padding: 16px;
-      font-size: 18px;
+      padding: 15px;
+      font-size: 17px;
       font-weight: 800;
       border-radius: 18px;
       cursor: pointer;
       box-shadow: 0 10px 20px rgba(34, 197, 94, 0.38);
       transition: all 0.15s ease;
     }
-    .restart-btn:hover {
+    .btn-primary:hover {
       background: #16a34a;
       transform: translateY(-2px);
-      box-shadow: 0 14px 24px rgba(34, 197, 94, 0.45);
     }
-    .restart-btn:active {
+    .btn-primary:active {
       transform: translateY(1px);
     }
     .key-tag {
@@ -243,15 +323,14 @@
           <div id="coin-display" class="val coin-val">0</div>
         </div>
         <div id="biome-badge" class="biome-badge" style="align-self: center;">
-          <span>🌲</span> <span id="biome-name">초원 (Grassland)</span>
+          <span>🌲</span> <span id="biome-name">초원</span>
         </div>
       </div>
-      <div style="display: flex; gap: 10px; align-items: flex-start;">
-        <div class="glass-card" style="text-align: right;">
-          <div class="label">TOP</div>
-          <div id="high-score-display" class="val high-val">0</div>
-        </div>
-        <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 20px; pointer-events: auto; display: flex; align-items: center; justify-content: center; height: 100%;">
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="char-select-btn" class="btn-action">
+          <span id="current-char-icon">🐔</span> 캐릭터 변경
+        </button>
+        <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 18px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
           🔊
         </button>
       </div>
@@ -263,10 +342,21 @@
     <div class="bottom-hint">방향키(WASD) 또는 화면 터치/스와이프로 점프!</div>
   </div>
 
-  <div id="game-over-modal">
+  <!-- 캐릭터 선택 모달 -->
+  <div id="char-modal" class="modal-overlay">
     <div class="modal-card">
-      <div class="modal-title">GAME OVER</div>
-      <div id="game-over-reason" class="modal-reason">차량에 치였습니다!</div>
+      <div class="modal-title">캐릭터 선택</div>
+      <div class="modal-subtitle">플레이할 귀여운 복셀 캐릭터를 선택하세요!</div>
+      <div id="char-grid" class="char-grid"></div>
+      <button id="char-close-btn" class="btn-primary">선택 완료</button>
+    </div>
+  </div>
+
+  <!-- 게임 오버 모달 -->
+  <div id="game-over-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-title" style="color:#ef4444;">GAME OVER</div>
+      <div id="game-over-reason" class="modal-subtitle" style="margin-bottom:18px;">차량에 치였습니다!</div>
       <div class="modal-scores">
         <div class="modal-row">
           <span>최종 점수</span>
@@ -285,14 +375,17 @@
           <strong id="final-high-score" style="color:#f97316;">0</strong>
         </div>
       </div>
-      <button id="restart-btn" class="restart-btn">다시 도전하기</button>
+      <div style="display:flex; gap:10px;">
+        <button id="restart-btn" class="btn-primary" style="flex:2;">다시 도전</button>
+        <button id="restart-char-btn" class="btn-action" style="flex:1; justify-content:center;">캐릭터</button>
+      </div>
       <div class="key-tag">Space 키 또는 화면 터치로 즉시 재시작</div>
     </div>
   </div>
 
   <script>
     /* ==========================================================================
-       1. 고품질 Web Audio API 신디사이저 (다양한 환경음 & 특수효과)
+       1. 고품질 Web Audio API 신디사이저 (캐릭터별 보이스 FX 탑재)
        ========================================================================== */
     class SoundFX {
       constructor() {
@@ -312,22 +405,95 @@
         this.isMuted = !this.isMuted;
         return this.isMuted;
       }
-      playJump() {
+
+      // 캐릭터별 특화 점프음
+      playJump(charType = 'chicken') {
         if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(260 + Math.random() * 40, now);
-        osc.frequency.exponentialRampToValueAtTime(620, now + 0.09);
-        gain.gain.setValueAtTime(0.28, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.1);
+
+        if (charType === 'duck') {
+          // 🦆 오리 꽥꽥 소리 (Quack)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else if (charType === 'frog') {
+          // 🐸 개구리 리빗 (Ribbit)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.linearRampToValueAtTime(260, now + 0.05);
+          osc.frequency.linearRampToValueAtTime(120, now + 0.11);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (charType === 'robot') {
+          // 🤖 로봇 8비트 비프 (Beep)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(587, now);
+          osc.frequency.setValueAtTime(880, now + 0.04);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (charType === 'cat') {
+          // 🐱 고양이 냐옹 뾱 (Meow chirping)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(860, now + 0.08);
+          gain.gain.setValueAtTime(0.26, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.11);
+        } else if (charType === 'pigeon') {
+          // 🐦 비둘기 구구 (Coo)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(360, now + 0.06);
+          osc.frequency.exponentialRampToValueAtTime(240, now + 0.12);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else {
+          // 🐔 클래식 닭 통통 점프
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(260 + Math.random() * 40, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.09);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        }
       }
-      // 빙판 미끄러짐 효과음
+
       playSlide() {
         if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
@@ -411,23 +577,6 @@
           osc.stop(now + 0.66);
         });
       }
-      // 경찰차 사이렌
-      playSiren() {
-        if (!this.ctx || this.isMuted) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(650, now);
-        osc.frequency.linearRampToValueAtTime(950, now + 0.25);
-        osc.frequency.linearRampToValueAtTime(650, now + 0.5);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.52);
-      }
       playEagleSwoop() {
         if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
@@ -459,7 +608,6 @@
           osc.stop(now + idx * 0.07 + 0.16);
         });
       }
-      // 스테이지 전환 팡파르
       playStageFanfare() {
         if (!this.ctx || this.isMuted) return;
         const now = this.ctx.currentTime;
@@ -480,12 +628,26 @@
     const sfx = new SoundFX();
 
     /* ==========================================================================
-       2. 원작급 4대 바이옴 (Biomes) 데이터 정의
+       2. 원작 감성 캐릭터 정의 (6대 개성 복셀 캐릭터)
+       ========================================================================== */
+    const CHARACTERS = [
+      { id: 'chicken', name: '꼬꼬닭', icon: '🐔', featherColor: 0xFFFFFF, desc: '클래식 원작 주인공' },
+      { id: 'duck', name: '청둥오리', icon: '🦆', featherColor: 0x0D9488, desc: '납작한 주황 부리 꽥꽥이' },
+      { id: 'pigeon', name: '도시 비둘기', icon: '🐦', featherColor: 0x94A3B8, desc: '구구구 평화의 상징' },
+      { id: 'frog', name: '청개구리', icon: '🐸', featherColor: 0x22C55E, desc: '강물도 두렵지 않은 폴짝이' },
+      { id: 'robot', name: '레트로 봇', icon: '🤖', featherColor: 0x06B6D4, desc: '안테나 달린 8비트 사이보그' },
+      { id: 'cat', name: '삼색 야옹이', icon: '🐱', featherColor: 0xF97316, desc: '날렵한 냥냥펀치 점퍼' }
+    ];
+
+    let selectedCharId = localStorage.getItem('crossy_selected_char') || 'chicken';
+
+    /* ==========================================================================
+       3. 4대 바이옴 데이터
        ========================================================================== */
     const BIOME_TYPES = {
       grassland: {
         id: 'grassland',
-        name: '초원 (Grassland)',
+        name: '초원',
         icon: '🌲',
         skyColor: 0x7FD2F5,
         fogColor: 0x7FD2F5,
@@ -498,24 +660,24 @@
       },
       desert: {
         id: 'desert',
-        name: '사막 협곡 (Canyon)',
+        name: '사막 협곡',
         icon: '🏜️',
         skyColor: 0xFDE047,
         fogColor: 0xFDE047,
         groundColor: 0xEAB308,
-        roadColor: 0x78350F, // 흙길
-        waterColor: 0xD97706, // 황토빛 급류
+        roadColor: 0x78350F,
+        waterColor: 0xD97706,
         sunColor: 0xFFEDD5,
         ambientIntensity: 0.8,
         obstacleType: 'cactus'
       },
       snow: {
         id: 'snow',
-        name: '설원 툰드라 (Frozen)',
+        name: '설원 툰드라',
         icon: '❄️',
         skyColor: 0xBAE6FD,
         fogColor: 0xBAE6FD,
-        groundColor: 0xF8FAFC, // 하얀 눈밭
+        groundColor: 0xF8FAFC,
         roadColor: 0x475569,
         waterColor: 0x38BDF8,
         sunColor: 0xF0F9FF,
@@ -524,11 +686,11 @@
       },
       city: {
         id: 'city',
-        name: '나이트 하이웨이 (Night City)',
+        name: '나이트 하이웨이',
         icon: '🌃',
         skyColor: 0x0F172A,
         fogColor: 0x0F172A,
-        groundColor: 0x1E293B, // 아스팔트 & 보도블럭
+        groundColor: 0x1E293B,
         roadColor: 0x020617,
         waterColor: 0x0284C7,
         sunColor: 0x93C5FD,
@@ -537,7 +699,6 @@
       }
     };
 
-    // 40~50레인마다 바이옴이 교체되는 스테이지 시퀀스
     const BIOME_SEQUENCE = ['grassland', 'desert', 'snow', 'city'];
     function getBiomeForLane(laneIndex) {
       if (laneIndex < 0) return BIOME_TYPES.grassland;
@@ -564,7 +725,7 @@
     };
 
     /* ==========================================================================
-       3. 씬 및 정통 아이소메트릭 쿼터뷰 카메라
+       4. 씬 & 정통 쿼터뷰 카메라 설정
        ========================================================================== */
     const container = document.getElementById('game-container');
     const scene = new THREE.Scene();
@@ -606,7 +767,7 @@
     scene.add(sunLight);
 
     /* ==========================================================================
-       4. 파티클 이펙트 & 메모리 정리 유틸리티
+       5. 파티클 & 메모리 정리 헬퍼
        ========================================================================== */
     class ParticleSystem {
       constructor() {
@@ -673,9 +834,6 @@
       });
     }
 
-    /* ==========================================================================
-       5. 3D 복셀 모델 라이브러리 (바이옴별 신규 오브젝트 대폭 확장)
-       ========================================================================== */
     function createBox(w, h, d, color, cast = true, receive = true) {
       const geo = new THREE.BoxGeometry(w, h, d);
       const mat = new THREE.MeshLambertMaterial({ color });
@@ -685,49 +843,204 @@
       return mesh;
     }
 
-    // 기본 복셀 닭
-    function createChicken() {
+    /* ==========================================================================
+       6. 6대 개성 복셀 캐릭터 팩터리 (Chicken, Duck, Pigeon, Frog, Robot, Cat)
+       ========================================================================== */
+    function buildCharacterModel(charId) {
       const group = new THREE.Group();
-      const body = createBox(15, 15, 16, 0xFFFFFF);
-      body.position.y = 12;
-      group.add(body);
 
-      const comb = createBox(4, 5, 8, 0xEF4444);
-      comb.position.set(0, 21.5, 0);
-      group.add(comb);
+      if (charId === 'duck') {
+        // 🦆 청둥오리 (에메랄드 청록 머리 + 하얀 넥밴드 + 주황 납작 부리)
+        const body = createBox(15, 14, 16, 0x854D0E); // 갈색 몸통
+        body.position.y = 11;
+        const head = createBox(11, 11, 12, 0x0F766E); // 청록 머리
+        head.position.set(0, 19, 4);
+        const ring = createBox(11.5, 2.5, 12.5, 0xFFFFFF, false, false); // 목 고리
+        ring.position.set(0, 15, 4);
+        const bill = createBox(8, 3, 8, 0xF59E0B); // 넓은 주황 부리
+        bill.position.set(0, 17, 12);
+        group.add(body, head, ring, bill);
 
-      const beak = createBox(6, 4, 6, 0xF97316);
-      beak.position.set(0, 12, 10);
-      group.add(beak);
+        [-4.5, 4.5].forEach(x => {
+          const eye = createBox(2, 2.5, 2, 0x0F172A, false, false);
+          eye.position.set(x, 20.5, 9);
+          group.add(eye);
+        });
 
-      const wattle = createBox(3, 4, 3, 0xEF4444);
-      wattle.position.set(0, 8.5, 9);
-      group.add(wattle);
+        const leftWing = createBox(2, 8, 11, 0x713F12);
+        leftWing.position.set(-8.5, 11, 0);
+        const rightWing = createBox(2, 8, 11, 0x713F12);
+        rightWing.position.set(8.5, 11, 0);
+        group.add(leftWing, rightWing);
 
-      [-6, 6].forEach(x => {
-        const eye = createBox(2, 2.5, 2, 0x0F172A, false, false);
-        eye.position.set(x, 14, 7);
-        group.add(eye);
-      });
+        [-4.5, 4.5].forEach(x => {
+          const foot = createBox(3, 3, 5, 0xF59E0B);
+          foot.position.set(x, 1.5, 2);
+          group.add(foot);
+        });
 
-      const leftWing = createBox(2, 8, 10, 0xF8FAFC);
-      leftWing.position.set(-8.5, 11, 0);
-      const rightWing = createBox(2, 8, 10, 0xF8FAFC);
-      rightWing.position.set(8.5, 11, 0);
-      group.add(leftWing, rightWing);
+        group.leftWing = leftWing;
+        group.rightWing = rightWing;
+      } else if (charId === 'pigeon') {
+        // 🐦 비둘기 (은회색 + 퍼플/그린 넥 + 핑크 발)
+        const body = createBox(14, 14, 15, 0x94A3B8);
+        body.position.y = 11;
+        const head = createBox(10, 10, 10, 0x64748B);
+        head.position.set(0, 19, 4);
+        const neck = createBox(10.5, 4, 10.5, 0x9333EA, false, false); // 오색빛 목
+        neck.position.set(0, 16, 4);
+        const beak = createBox(4, 3, 5, 0xF1F5F9);
+        beak.position.set(0, 18, 10);
+        group.add(body, head, neck, beak);
 
-      [-4.5, 4.5].forEach(x => {
-        const leg = createBox(2.2, 5.5, 2.2, 0xF59E0B);
-        leg.position.set(x, 2.75, 0);
-        group.add(leg);
-      });
+        [-4, 4].forEach(x => {
+          const eye = createBox(2, 2, 2, 0xEF4444, false, false); // 붉은 눈
+          eye.position.set(x, 20, 8);
+          group.add(eye);
+        });
 
-      group.leftWing = leftWing;
-      group.rightWing = rightWing;
+        const leftWing = createBox(2, 8, 11, 0x475569);
+        leftWing.position.set(-8, 11, 0);
+        const rightWing = createBox(2, 8, 11, 0x475569);
+        rightWing.position.set(8, 11, 0);
+        group.add(leftWing, rightWing);
+
+        [-4, 4].forEach(x => {
+          const leg = createBox(2, 5, 2, 0xF43F5E);
+          leg.position.set(x, 2.5, 0);
+          group.add(leg);
+        });
+
+        group.leftWing = leftWing;
+        group.rightWing = rightWing;
+      } else if (charId === 'frog') {
+        // 🐸 개구리 (초록 몸체 + 돌출된 커다란 왕눈 + 노란 배)
+        const body = createBox(16, 12, 16, 0x22C55E);
+        body.position.y = 8;
+        const belly = createBox(12, 10, 12, 0xBBF7D0, false, false);
+        belly.position.set(0, 8, 2.5);
+        group.add(body, belly);
+
+        // 툭 튀어나온 큰 눈망울
+        [-5.5, 5.5].forEach(x => {
+          const eyeSocket = createBox(6, 6, 6, 0x16A34A);
+          eyeSocket.position.set(x, 15, 4);
+          const pupil = createBox(2.5, 4, 2, 0x0F172A, false, false);
+          pupil.position.set(x, 15, 6.8);
+          group.add(eyeSocket, pupil);
+        });
+
+        // 양쪽 뒷다리 (접힌 복셀)
+        [-9, 9].forEach(x => {
+          const leg = createBox(3, 6, 9, 0x15803D);
+          leg.position.set(x, 4, -2);
+          group.add(leg);
+        });
+      } else if (charId === 'robot') {
+        // 🤖 레트로 사이보그 (메탈릭 바디 + 안테나 + LED 눈)
+        const body = createBox(15, 14, 15, 0x0284C7);
+        body.position.y = 11;
+        const head = createBox(13, 11, 13, 0x0EA5E9);
+        head.position.set(0, 20, 0);
+        const antenna = createBox(2, 7, 2, 0xCBD5E1);
+        antenna.position.set(0, 28, 0);
+        const bulb = createBox(4, 4, 4, 0xEF4444, false, false);
+        bulb.position.set(0, 32, 0);
+        const screen = createBox(10, 4, 13.2, 0x0F172A, false, false);
+        screen.position.set(0, 20, 0.2);
+        group.add(body, head, antenna, bulb, screen);
+
+        // LED 눈
+        [-3.5, 3.5].forEach(x => {
+          const led = createBox(2, 2, 1, 0x22C55E, false, false);
+          led.position.set(x, 20, 6.8);
+          group.add(led);
+        });
+
+        // 사각 다리
+        [-4.5, 4.5].forEach(x => {
+          const leg = createBox(4, 5, 4, 0x475569);
+          leg.position.set(x, 2.5, 0);
+          group.add(leg);
+        });
+      } else if (charId === 'cat') {
+        // 🐱 치즈 삼색 고양이 (뾰족한 귀 + 꼬리 + 분홍 코)
+        const body = createBox(14, 13, 15, 0xF97316);
+        body.position.y = 10.5;
+        const head = createBox(13, 12, 12, 0xFB923C);
+        head.position.set(0, 18, 2);
+
+        // 뾰족 귀
+        [-4.5, 4.5].forEach(x => {
+          const ear = createBox(3.5, 4, 3, 0xEA580C);
+          ear.position.set(x, 25, 2);
+          group.add(ear);
+        });
+
+        const nose = createBox(2.5, 2, 2, 0xFDA4AF, false, false);
+        nose.position.set(0, 17, 8);
+        const muzzle = createBox(7, 3, 3, 0xFFFFFF, false, false);
+        muzzle.position.set(0, 16, 7.5);
+        group.add(body, head, nose, muzzle);
+
+        [-4, 4].forEach(x => {
+          const eye = createBox(2, 2.5, 1.5, 0x15803D, false, false);
+          eye.position.set(x, 19, 7.5);
+          group.add(eye);
+        });
+
+        // 꼬리
+        const tail = createBox(3, 9, 3, 0xEA580C);
+        tail.position.set(0, 15, -8);
+        tail.rotation.x = -0.3;
+        group.add(tail);
+
+        [-4, 4].forEach(x => {
+          const leg = createBox(3, 5, 3, 0xFFFFFF);
+          leg.position.set(x, 2.5, 0);
+          group.add(leg);
+        });
+      } else {
+        // 🐔 클래식 닭
+        const body = createBox(15, 15, 16, 0xFFFFFF);
+        body.position.y = 12;
+        const comb = createBox(4, 5, 8, 0xEF4444);
+        comb.position.set(0, 21.5, 0);
+        const beak = createBox(6, 4, 6, 0xF97316);
+        beak.position.set(0, 12, 10);
+        const wattle = createBox(3, 4, 3, 0xEF4444);
+        wattle.position.set(0, 8.5, 9);
+        group.add(body, comb, beak, wattle);
+
+        [-6, 6].forEach(x => {
+          const eye = createBox(2, 2.5, 2, 0x0F172A, false, false);
+          eye.position.set(x, 14, 7);
+          group.add(eye);
+        });
+
+        const leftWing = createBox(2, 8, 10, 0xF8FAFC);
+        leftWing.position.set(-8.5, 11, 0);
+        const rightWing = createBox(2, 8, 10, 0xF8FAFC);
+        rightWing.position.set(8.5, 11, 0);
+        group.add(leftWing, rightWing);
+
+        [-4.5, 4.5].forEach(x => {
+          const leg = createBox(2.2, 5.5, 2.2, 0xF59E0B);
+          leg.position.set(x, 2.75, 0);
+          group.add(leg);
+        });
+
+        group.leftWing = leftWing;
+        group.rightWing = rightWing;
+      }
+
+      group.charId = charId;
       return group;
     }
 
-    // 초원 나무
+    /* ==========================================================================
+       7. 환경 모델 (나무, 선인장, 전나무, 가로등, 차량, 기차, 독수리)
+       ========================================================================== */
     function createTree() {
       const tree = new THREE.Group();
       const trunkH = 12 + Math.random() * 6;
@@ -749,7 +1062,6 @@
       return tree;
     }
 
-    // 🏜️ 사막 선인장
     function createCactus() {
       const cactus = new THREE.Group();
       const mainH = 22 + Math.random() * 8;
@@ -757,14 +1069,12 @@
       stem.position.y = mainH / 2;
       cactus.add(stem);
 
-      // 왼쪽 팔
       const leftArmH = createBox(8, 5, 5, 0x15803D);
       leftArmH.position.set(-6, mainH * 0.55, 0);
       const leftArmV = createBox(5, 10, 5, 0x15803D);
       leftArmV.position.set(-8, mainH * 0.55 + 5, 0);
       cactus.add(leftArmH, leftArmV);
 
-      // 오른쪽 팔
       const rightArmH = createBox(8, 5, 5, 0x15803D);
       rightArmH.position.set(6, mainH * 0.4, 0);
       const rightArmV = createBox(5, 10, 5, 0x15803D);
@@ -774,7 +1084,6 @@
       return cactus;
     }
 
-    // ❄️ 눈 덮인 설원 전나무
     function createSnowPine() {
       const pine = new THREE.Group();
       const trunk = createBox(6, 12, 6, 0x451A03);
@@ -795,7 +1104,6 @@
       return pine;
     }
 
-    // 🌃 도시 가로등
     function createStreetLight() {
       const light = new THREE.Group();
       const pole = createBox(3.5, 32, 3.5, 0x334155);
@@ -813,7 +1121,6 @@
       return light;
     }
 
-    // 다양한 차량 모델 (승용차, 트럭, 🚨경찰차, 🏎️스포츠카)
     function createVehicle(type = 'car') {
       const vehicle = new THREE.Group();
       const randColor = COLORS.carColors[Math.floor(Math.random() * COLORS.carColors.length)];
@@ -849,7 +1156,6 @@
           vehicle.add(w);
         });
       } else if (type === 'police') {
-        // 🚨 경찰차 (경광등 교차 점멸)
         const base = createBox(30, 9, 16, 0x0F172A);
         base.position.y = 7;
         const cabin = createBox(17, 7, 13.5, 0xFFFFFF);
@@ -871,7 +1177,6 @@
           vehicle.add(w);
         });
       } else if (type === 'supercar') {
-        // 🏎️ 날렵한 초고속 스포츠카
         const base = createBox(34, 7, 16, 0xEF4444);
         base.position.y = 5.5;
         const cabin = createBox(18, 5, 12, 0x0F172A);
@@ -962,7 +1267,7 @@
     }
 
     /* ==========================================================================
-       6. 확장된 레인 매니저 (다양한 바이옴, 빙판, 고속도로, 경찰차)
+       8. 레인 매니저
        ========================================================================== */
     class LaneManager {
       constructor() {
@@ -999,19 +1304,16 @@
         let t = 'grass';
 
         if (biome.id === 'snow') {
-          // 설원에서는 20% 확률로 밟으면 미끄러지는 '얼음(ice)' 레인 등장!
           if (r < 0.22) t = 'ice';
           else if (r < 0.52) t = 'road';
           else if (r < 0.76) t = 'river';
           else t = 'grass';
         } else if (biome.id === 'city') {
-          // 도시에서는 4~5차선 고속도로가 더 빈번히 등장
           if (r < 0.55) t = 'road';
           else if (r < 0.72) t = 'rail';
           else if (r < 0.85) t = 'river';
           else t = 'grass';
         } else {
-          // 초원 & 사막
           if (r < 0.38) t = 'road';
           else if (r < 0.68) t = 'river';
           else if (r < 0.84) t = 'grass';
@@ -1096,14 +1398,12 @@
             }
           }
         } else if (type === 'road') {
-          // 차선 줄무늬
           for (let x = -width / 2 + 25; x < width / 2; x += 55) {
             const stripe = createBox(22, 0.2, 2.5, biome.id === 'desert' ? 0xFDE68A : 0xF8FAFC, false, false);
             stripe.position.set(x, 0.1, 0);
             laneMesh.add(stripe);
           }
 
-          // 차량 종류 결정 (일반, 트럭, 경찰차, 스포츠카)
           let vehicleType = 'car';
           const rand = Math.random();
           if (rand < 0.28) vehicleType = 'truck';
@@ -1131,7 +1431,6 @@
             });
           }
         } else if (type === 'ice') {
-          // ❄️ 빙판 레인 디테일 (얼음 균열 박스)
           for (let x = -width / 2 + 30; x < width / 2; x += 80) {
             const crack = createBox(14, 0.2, 8, COLORS.iceCrack, false, false);
             crack.position.set(x, 0.1, 0);
@@ -1227,7 +1526,6 @@
               if (obs.type === 'lily') return;
               obs.mesh.position.x += lane.speed * delta;
 
-              // 경찰차 경광등 애니메이션
               if (obs.mesh.sirenRed && obs.mesh.sirenBlue) {
                 const flash = Math.sin(Date.now() * 0.03) > 0;
                 obs.mesh.sirenRed.material.color.setHex(flash ? 0xEF4444 : 0x450A0A);
@@ -1287,7 +1585,6 @@
           }
         });
 
-        // 후방 레인 제거 & 메모리 dispose
         const playerLaneIdx = Math.round(playerZ / CELL_SIZE);
         while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 16) {
           const old = this.lanes.shift();
@@ -1305,13 +1602,28 @@
     }
 
     /* ==========================================================================
-       7. 플레이어 시스템 (빙판 미끄러짐 물리 추가)
+       9. 플레이어 시스템 (캐릭터 모델 동적 교체 지원)
        ========================================================================== */
     class Player {
-      constructor() {
-        this.mesh = createChicken();
+      constructor(charId = 'chicken') {
+        this.charId = charId;
+        this.mesh = buildCharacterModel(charId);
         scene.add(this.mesh);
         this.reset();
+      }
+
+      // 캐릭터 교체 함수
+      switchCharacter(newCharId) {
+        this.charId = newCharId;
+        const oldPos = this.mesh.position.clone();
+        const oldRot = this.mesh.rotation.y;
+        scene.remove(this.mesh);
+        disposeHierarchy(this.mesh);
+
+        this.mesh = buildCharacterModel(newCharId);
+        this.mesh.position.copy(oldPos);
+        this.mesh.rotation.y = oldRot;
+        scene.add(this.mesh);
       }
 
       reset() {
@@ -1372,7 +1684,7 @@
         this.jumpProgress = 0;
         this.onPlatform = null;
 
-        sfx.playJump();
+        sfx.playJump(this.charId);
         particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 18);
       }
 
@@ -1392,7 +1704,6 @@
 
             particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 15);
 
-            // ❄️ 빙판(Ice) 착지 시 1칸 자동 미끄러짐 물리!
             const curLane = laneManager.getLane(this.laneIndex);
             if (curLane && curLane.type === 'ice' && !this.isSliding) {
               this.slideForward();
@@ -1419,7 +1730,6 @@
             }
           }
         } else if (this.isSliding) {
-          // 빙판 미끄러짐 진행
           this.slideProgress += delta / 0.14;
           if (this.slideProgress >= 1) {
             this.slideProgress = 1;
@@ -1454,7 +1764,6 @@
         }
       }
 
-      // 빙판 미끄러짐 발동
       slideForward() {
         const nextCol = this.col + this.facingDir.dCol;
         const nextLane = this.laneIndex + this.facingDir.dLane;
@@ -1474,15 +1783,17 @@
     }
 
     /* ==========================================================================
-       8. 게임 관리자 & 동적 바이옴 전환 시스템
+       10. 게임 매니저 & 바이옴/캐릭터 선택 UI 제어
        ========================================================================== */
     const laneManager = new LaneManager();
-    const player = new Player();
+    const player = new Player(selectedCharId);
     let eagle = null;
 
     let score = 0;
     let maxLaneReached = 0;
-    let coins = 0;
+    let coins = parseInt(localStorage.getItem('crossy_coins') || '0', 10);
+    document.getElementById('coin-display').innerText = coins;
+
     let currentBiome = BIOME_TYPES.grassland;
     let highScore = parseInt(localStorage.getItem('crossy_high_score') || '0', 10);
     document.getElementById('high-score-display').innerText = highScore;
@@ -1496,23 +1807,65 @@
 
     laneManager.init();
 
-    // 바이옴 전환 확인
+    // 초기 캐릭터 아이콘 표시
+    const initialChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
+    document.getElementById('current-char-icon').innerText = initialChar.icon;
+
+    // 캐릭터 선택 모달 렌더링
+    const charGrid = document.getElementById('char-grid');
+    function renderCharGrid() {
+      charGrid.innerHTML = '';
+      CHARACTERS.forEach(char => {
+        const item = document.createElement('div');
+        item.className = 'char-item' + (char.id === selectedCharId ? ' selected' : '');
+        item.innerHTML = `
+          <div class="char-emoji">${char.icon}</div>
+          <div class="char-name">${char.name}</div>
+          <div class="char-badge">${char.id === selectedCharId ? '선택됨' : '선택'}</div>
+        `;
+        item.addEventListener('click', () => {
+          selectedCharId = char.id;
+          localStorage.setItem('crossy_selected_char', selectedCharId);
+          player.switchCharacter(selectedCharId);
+          document.getElementById('current-char-icon').innerText = char.icon;
+          sfx.playJump(selectedCharId);
+          renderCharGrid();
+        });
+        charGrid.appendChild(item);
+      });
+    }
+
+    renderCharGrid();
+
+    // 모달 열기/닫기
+    const charModal = document.getElementById('char-modal');
+    document.getElementById('char-select-btn').addEventListener('click', () => {
+      sfx.init();
+      renderCharGrid();
+      charModal.style.display = 'flex';
+    });
+    document.getElementById('char-close-btn').addEventListener('click', () => {
+      charModal.style.display = 'none';
+    });
+    document.getElementById('restart-char-btn').addEventListener('click', () => {
+      document.getElementById('game-over-modal').style.display = 'none';
+      renderCharGrid();
+      charModal.style.display = 'flex';
+    });
+
     function updateBiome(laneIdx) {
       const newBiome = getBiomeForLane(laneIdx);
       if (newBiome.id !== currentBiome.id) {
         currentBiome = newBiome;
         sfx.playStageFanfare();
 
-        // UI 배지 업데이트
         document.getElementById('biome-badge').innerHTML = `<span>${newBiome.icon}</span> <span>${newBiome.name}</span>`;
 
-        // 중앙 배너 연출
         const banner = document.getElementById('biome-banner');
         banner.innerHTML = `${newBiome.icon} ${newBiome.name.toUpperCase()}`;
         banner.classList.add('show');
         setTimeout(() => banner.classList.remove('show'), 2200);
 
-        // 환경광 & 하늘/안개 컬러 부드러운 전환
         scene.background.setHex(newBiome.skyColor);
         scene.fog.color.setHex(newBiome.fogColor);
         sunLight.color.setHex(newBiome.sunColor);
@@ -1521,10 +1874,17 @@
     }
 
     /* ==========================================================================
-       9. 조작 이벤트 리스너
+       11. 조작 이벤트 리스너
        ========================================================================== */
     window.addEventListener('keydown', e => {
       sfx.init();
+
+      if (charModal.style.display === 'flex') {
+        if (e.code === 'Escape' || e.code === 'Space' || e.code === 'Enter') {
+          charModal.style.display = 'none';
+        }
+        return;
+      }
 
       if (isGameOver) {
         if (e.code === 'Space' || e.code === 'Enter') restartGame();
@@ -1550,6 +1910,8 @@
     }, { passive: true });
 
     window.addEventListener('touchend', e => {
+      if (charModal.style.display === 'flex') return;
+
       if (isGameOver) {
         restartGame();
         return;
@@ -1572,7 +1934,7 @@
     });
 
     /* ==========================================================================
-       10. 충돌 판정 & 독수리 급강하
+       12. 충돌 판정 & 독수리 급강하
        ========================================================================== */
     function checkCollisions() {
       if (player.isDead) return;
@@ -1587,6 +1949,7 @@
           currentLane.mesh.remove(coin.mesh);
           disposeHierarchy(coin.mesh);
           coins++;
+          localStorage.setItem('crossy_coins', coins.toString());
           document.getElementById('coin-display').innerText = coins;
           sfx.playCoin();
           particleSys.create(player.mesh.position.x, 8, currentLane.z, COLORS.coin, 8, 28);
@@ -1606,7 +1969,8 @@
             Math.abs(pZ - cZ) < car.halfDepth + 6
           ) {
             sfx.playCrash();
-            particleSys.create(pX, 8, pZ, 0xFFFFFF, 18, 55);
+            const charObj = CHARACTERS.find(c => c.id === player.charId) || CHARACTERS[0];
+            particleSys.create(pX, 8, pZ, charObj.featherColor, 18, 55);
             particleSys.create(pX, 8, pZ, 0xEF4444, 8, 45);
             player.mesh.scale.set(1.6, 0.12, 1.6);
             triggerGameOver('차량에 치였습니다!');
@@ -1625,7 +1989,8 @@
           Math.abs(player.mesh.position.z - tZ) < train.halfDepth + 6
         ) {
           sfx.playCrash();
-          particleSys.create(player.mesh.position.x, 10, tZ, 0xFFFFFF, 24, 70);
+          const charObj = CHARACTERS.find(c => c.id === player.charId) || CHARACTERS[0];
+          particleSys.create(player.mesh.position.x, 10, tZ, charObj.featherColor, 24, 70);
           particleSys.create(player.mesh.position.x, 10, tZ, 0xEF4444, 12, 60);
           player.mesh.scale.set(1.8, 0.08, 1.8);
           triggerGameOver('초고속 열차에 치였습니다!');
@@ -1694,7 +2059,7 @@
       document.getElementById('game-over-reason').innerText = reason;
       document.getElementById('final-score').innerText = score;
       document.getElementById('final-coins').innerText = coins;
-      document.getElementById('final-biome').innerText = currentBiome.name.split(' ')[0];
+      document.getElementById('final-biome').innerText = currentBiome.name;
       document.getElementById('final-high-score').innerText = highScore;
       document.getElementById('game-over-modal').style.display = 'flex';
     }
@@ -1736,7 +2101,7 @@
     }
 
     /* ==========================================================================
-       11. 메인 렌더 루프
+       13. 메인 렌더 루프
        ========================================================================== */
     const clock = new THREE.Clock();
     const cameraTarget = new THREE.Vector3();
