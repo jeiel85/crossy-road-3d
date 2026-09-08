@@ -510,10 +510,287 @@
       color: #0f172a;
     }
 
+
+    /* ==========================================================================
+       모바일 뷰 & 상단 액션 바 최적화 (방해 요소 제거 & ⚙️ 슬림 메뉴)
+       ========================================================================== */
+    .desktop-action-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mobile-action-container {
+      display: none;
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .mobile-menu-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .mobile-menu-btn:hover {
+      transform: scale(1.06);
+      background: #ffffff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+    }
+    .mobile-menu-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mobile-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 48px;
+      right: 0;
+      width: 210px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      pointer-events: auto;
+      animation: menuFadeIn 0.2s ease-out;
+    }
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .mobile-dropdown-menu.open {
+      display: flex;
+    }
+    .mobile-dropdown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .mobile-menu-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+    .mobile-menu-close-btn:hover {
+      color: #ffffff;
+    }
+    .mobile-menu-items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mobile-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      width: 100%;
+    }
+    .mobile-menu-item:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(2px);
+    }
+    .mobile-menu-item:active {
+      transform: scale(0.98);
+    }
+    .mobile-menu-item .m-icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* PC 데스크톱 시뮬레이터 외부 헤더 바 */
+    #desktop-sim-bar {
+      display: none;
+      position: fixed;
+      top: 18px;
+      right: 25px;
+      z-index: 9999;
+    }
+    body.mobile-sim-active #desktop-sim-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .desktop-sim-btn {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .desktop-sim-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 모바일 뷰 시뮬레이터 전용 스타일 */
+    body.mobile-sim-active .desktop-action-bar {
+      display: none !important;
+    }
+    body.mobile-sim-active .mobile-action-container {
+      display: block !important;
+    }
+    body.mobile-sim-active #ui {
+      padding: 36px 14px 14px 14px !important;
+    }
+    body.mobile-sim-active .score-container {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      gap: 5px !important;
+      max-width: calc(100% - 50px) !important;
+    }
+    body.mobile-sim-active .score-container .glass-card {
+      padding: 4px 8px !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+    }
+    body.mobile-sim-active .score-container .label {
+      font-size: 8px !important;
+      letter-spacing: 0.5px !important;
+      line-height: 1 !important;
+    }
+    body.mobile-sim-active .score-container .val {
+      font-size: 16px !important;
+      line-height: 1.1 !important;
+    }
+    body.mobile-sim-active .score-container .high-val {
+      font-size: 13px !important;
+    }
+    body.mobile-sim-active .biome-badge {
+      padding: 4px 8px !important;
+      font-size: 11px !important;
+      border-radius: 10px !important;
+      white-space: nowrap !important;
+    }
+    body.mobile-sim-active .bottom-hint {
+      font-size: 11px !important;
+      padding: 6px 14px !important;
+      margin-bottom: 6px !important;
+    }
+    body.mobile-sim-active #auto-play-badge {
+      font-size: 10px !important;
+      padding: 4px 8px !important;
+      border-radius: 10px !important;
+      white-space: nowrap !important;
+    }
+
+    /* 실제 모바일 화면 (화면 너비 640px 이하) 반응형 스타일 */
+    @media (max-width: 640px) {
+      .desktop-action-bar {
+        display: none !important;
+      }
+      .mobile-action-container {
+        display: block !important;
+      }
+      #ui {
+        padding: 14px 12px !important;
+      }
+      .score-container {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+        max-width: calc(100% - 50px) !important;
+      }
+      .score-container .glass-card {
+        padding: 4px 8px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+      }
+      .score-container .label {
+        font-size: 8px !important;
+        letter-spacing: 0.5px !important;
+        line-height: 1 !important;
+      }
+      .score-container .val {
+        font-size: 18px !important;
+        line-height: 1.1 !important;
+      }
+      .score-container .high-val {
+        font-size: 13px !important;
+      }
+      .biome-badge {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        border-radius: 10px !important;
+        white-space: nowrap !important;
+      }
+      .bottom-hint {
+        font-size: 11px !important;
+        padding: 6px 14px !important;
+        margin-bottom: 6px !important;
+      }
+      #auto-play-badge {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+        border-radius: 10px !important;
+        white-space: nowrap !important;
+      }
+    }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+  <div id="desktop-sim-bar">
+    <button id="desktop-sim-exit-btn" class="desktop-sim-btn">💻 PC 전체화면으로 복귀</button>
+  </div>
   <div id="game-shell">
     <div id="mobile-notch"></div>
     <div id="game-container"></div>
@@ -536,11 +813,13 @@
         <div id="biome-badge" class="biome-badge" style="align-self: center;">
           <span>🌲</span> <span id="biome-name">초원</span>
         </div>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
         <div id="auto-play-badge" style="display:none; align-items:center; gap:6px; background:#16a34a; color:#fff; font-size:12px; font-weight:800; padding:6px 12px; border-radius:16px; box-shadow: 0 4px 12px rgba(22,163,74,0.4); animation:pulseHint 1.2s infinite alternate;">
           🤖 AUTO-PILOT ON
         </div>
+      </div>
+
+      <!-- PC 전체화면 시 표시되는 상단 액션 바 -->
+      <div class="desktop-action-bar">
         <button id="mobile-view-btn" class="btn-action" title="모바일 스마트폰 뷰 / PC 전체화면 전환">
           📱 모바일 뷰
         </button>
@@ -556,6 +835,41 @@
         <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 18px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
           🔊
         </button>
+      </div>
+
+      <!-- 모바일 뷰 및 좁은 화면용 슬림 설정 토글 메뉴 (화면 가림 방지) -->
+      <div class="mobile-action-container">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" title="게임 설정 & 메뉴">
+          ⚙️
+        </button>
+        <div id="mobile-dropdown-menu" class="mobile-dropdown-menu">
+          <div class="mobile-dropdown-header">
+            <span>⚙️ 게임 설정 & 메뉴</span>
+            <button id="mobile-menu-close" class="mobile-menu-close-btn">✕</button>
+          </div>
+          <div class="mobile-menu-items">
+            <button id="mobile-item-autoplay" class="mobile-menu-item">
+              <span class="m-icon">🤖</span>
+              <span id="mobile-autoplay-text" class="m-label">자동 플레이: OFF</span>
+            </button>
+            <button id="mobile-item-ranking" class="mobile-menu-item">
+              <span class="m-icon">🏆</span>
+              <span class="m-label">명예의 전당 (랭킹)</span>
+            </button>
+            <button id="mobile-item-char" class="mobile-menu-item">
+              <span id="mobile-char-icon" class="m-icon">🐔</span>
+              <span class="m-label">캐릭터 변경</span>
+            </button>
+            <button id="mobile-item-sound" class="mobile-menu-item">
+              <span id="mobile-sound-icon" class="m-icon">🔊</span>
+              <span id="mobile-sound-text" class="m-label">소리: 켜짐</span>
+            </button>
+            <button id="mobile-item-fullscreen" class="mobile-menu-item">
+              <span class="m-icon">💻</span>
+              <span class="m-label">PC 전체화면으로 복귀</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2890,14 +3204,136 @@
     if (mobileViewBtn) {
       mobileViewBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        document.body.classList.toggle('mobile-sim-active');
-        const isMobile = document.body.classList.contains('mobile-sim-active');
-        mobileViewBtn.innerText = isMobile ? '🖥️ PC 전체화면' : '📱 모바일 뷰';
-        mobileViewBtn.style.color = isMobile ? '#2563eb' : '#0f172a';
-        resizeRenderer();
-        setTimeout(resizeRenderer, 360);
+        toggleMobileView();
       });
     }
+
+    // ==========================================================================
+    // 모바일 뷰 & 슬림 메뉴 상호작용 로직
+    // ==========================================================================
+    function toggleMobileView() {
+      document.body.classList.toggle('mobile-sim-active');
+      const isMobile = document.body.classList.contains('mobile-sim-active');
+      const mbBtn = document.getElementById('mobile-view-btn');
+      if (mbBtn) {
+        mbBtn.innerText = isMobile ? '🖥️ PC 전체화면' : '📱 모바일 뷰';
+        mbBtn.style.color = isMobile ? '#2563eb' : '#0f172a';
+      }
+      const mdm = document.getElementById('mobile-dropdown-menu');
+      if (mdm) mdm.classList.remove('open');
+      resizeRenderer();
+      setTimeout(resizeRenderer, 360);
+    }
+
+    function syncMobileMenuUI() {
+      const apText = document.getElementById('mobile-autoplay-text');
+      const apItem = document.getElementById('mobile-item-autoplay');
+      if (apText && window.autoPlayAgent) {
+        apText.innerText = autoPlayAgent.enabled ? '자동 플레이: ON' : '자동 플레이: OFF';
+        if (apItem) {
+          apItem.style.background = autoPlayAgent.enabled ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+          apItem.style.color = autoPlayAgent.enabled ? '#4ade80' : '#f8fafc';
+        }
+      }
+      const soundText = document.getElementById('mobile-sound-text');
+      const soundIcon = document.getElementById('mobile-sound-icon');
+      if (soundText && soundIcon && window.sfx) {
+        soundText.innerText = sfx.isMuted ? '소리: 꺼짐' : '소리: 켜짐';
+        soundIcon.innerText = sfx.isMuted ? '🔇' : '🔊';
+      }
+      const charIcon = document.getElementById('mobile-char-icon');
+      const curIcon = document.getElementById('current-char-icon');
+      if (charIcon && curIcon) {
+        charIcon.innerText = curIcon.innerText;
+      }
+    }
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileDropdown = document.getElementById('mobile-dropdown-menu');
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!mobileDropdown) return;
+        syncMobileMenuUI();
+        mobileDropdown.classList.toggle('open');
+      });
+    }
+
+    if (mobileMenuClose) {
+      mobileMenuClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mobileDropdown) mobileDropdown.classList.remove('open');
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (mobileDropdown && mobileDropdown.classList.contains('open')) {
+        if (!e.target.closest('.mobile-action-container')) {
+          mobileDropdown.classList.remove('open');
+        }
+      }
+    });
+
+    const mItemAutoplay = document.getElementById('mobile-item-autoplay');
+    if (mItemAutoplay) {
+      mItemAutoplay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        autoPlayAgent.toggle();
+        syncMobileMenuUI();
+      });
+    }
+
+    const mItemRanking = document.getElementById('mobile-item-ranking');
+    if (mItemRanking) {
+      mItemRanking.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mobileDropdown) mobileDropdown.classList.remove('open');
+        openRankingModal();
+      });
+    }
+
+    const mItemChar = document.getElementById('mobile-item-char');
+    if (mItemChar) {
+      mItemChar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mobileDropdown) mobileDropdown.classList.remove('open');
+        sfx.init();
+        renderCharGrid();
+        const cm = document.getElementById('char-modal');
+        if (cm) cm.style.display = 'flex';
+      });
+    }
+
+    const mItemSound = document.getElementById('mobile-item-sound');
+    if (mItemSound) {
+      mItemSound.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sfx.init();
+        const muted = sfx.toggleMute();
+        const mainMuteBtn = document.getElementById('mute-btn');
+        if (mainMuteBtn) mainMuteBtn.innerText = muted ? '🔇' : '🔊';
+        syncMobileMenuUI();
+      });
+    }
+
+    const mItemFullscreen = document.getElementById('mobile-item-fullscreen');
+    if (mItemFullscreen) {
+      mItemFullscreen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMobileView();
+      });
+    }
+
+    const desktopSimExitBtn = document.getElementById('desktop-sim-exit-btn');
+    if (desktopSimExitBtn) {
+      desktopSimExitBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMobileView();
+      });
+    }
+
 
     // 랭킹 모달 탭 전환 이벤트
     const tabGlobalBtn = document.getElementById('tab-global');
@@ -2963,6 +3399,7 @@
         sfx.init();
         const muted = sfx.toggleMute();
         muteBtn.innerText = muted ? '🔇' : '🔊';
+        if (typeof syncMobileMenuUI === 'function') syncMobileMenuUI();
       });
     }
 
@@ -2986,7 +3423,13 @@
     function isAnyModalActive() {
       const cm = document.getElementById('char-modal');
       const rm = document.getElementById('ranking-modal');
-      return (cm && cm.style.display === 'flex') || (rm && rm.style.display === 'flex');
+      const gom = document.getElementById('game-over-modal');
+      const mdm = document.getElementById('mobile-dropdown-menu');
+      const isChar = cm && cm.style.display === 'flex';
+      const isRank = rm && rm.style.display === 'flex';
+      const isGameOver = gom && gom.style.display === 'flex';
+      const isMenuOpen = mdm && mdm.classList.contains('open');
+      return isChar || isRank || isGameOver || isMenuOpen;
     }
 
     function animate() {
@@ -3012,6 +3455,14 @@
         score = maxLaneReached;
         document.getElementById('score-display').innerText = score;
         updateBiome(player.laneIndex);
+        if (score > 0) {
+          const hint = document.querySelector('.bottom-hint');
+          if (hint && hint.style.opacity !== '0') {
+            hint.style.opacity = '0';
+            hint.style.transition = 'opacity 0.6s ease';
+            hint.style.pointerEvents = 'none';
+          }
+        }
       }
 
       if (!isGameOver) {
