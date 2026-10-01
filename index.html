@@ -4187,11 +4187,15 @@
         onlineTick(now);
       }
 
-      if (versus.phase === 'running') {
-        const reason = checkVersusEnd();
-        if (reason) finishVersus(reason);
-      }
+      // 온라인은 animate()가 월드를 레이스 시계까지 따라잡은 뒤에 판정한다 (마지막 구간 누락 방지)
+      if (versus.mode !== 'online' || laneManager.time >= versus.elapsed - 1e-6) settleVersusIfOver();
       updateVersusHud();
+    }
+
+    function settleVersusIfOver() {
+      if (versus.phase !== 'running') return;
+      const reason = checkVersusEnd();
+      if (reason) finishVersus(reason);
     }
 
     function checkVersusEnd() {
@@ -4956,7 +4960,8 @@
       if (player.laneIndex > maxLaneReached) {
         maxLaneReached = player.laneIndex;
         score = maxLaneReached;
-        if (versus.active && versus.me && !versus.me.dead) {
+        // 도착한 레인에서 바로 죽어도 그 레인은 인정한다 (싱글 플레이 점수·봇 점수와 같은 기준)
+        if (versus.active && versus.me) {
           versus.me.score = score;
           versus.me.reachedAt = versus.elapsed;
         }
@@ -5032,6 +5037,7 @@
           stepWorld(step);
           lag -= step;
         }
+        settleVersusIfOver();
       } else {
         stepWorld(delta);
       }
