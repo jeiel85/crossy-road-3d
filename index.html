@@ -784,6 +784,229 @@
       }
     }
 
+    /* ==========================================================================
+       대전 모드 (봇 대전 / 온라인 1:1)
+       ========================================================================== */
+    .versus-hud {
+      position: absolute;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.82);
+      color: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+      z-index: 12;
+      pointer-events: auto;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    body.versus-active .versus-hud {
+      display: flex;
+    }
+    .vs-side {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .vs-side strong {
+      font-size: 22px;
+      min-width: 28px;
+      text-align: center;
+    }
+    .vs-side.me strong { color: #4ade80; }
+    .vs-side.rival strong { color: #f87171; }
+    .vs-side.dead { opacity: 0.45; text-decoration: line-through; }
+    .vs-name {
+      max-width: 84px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .vs-timer {
+      font-size: 15px;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 3px 10px;
+      border-radius: 10px;
+      min-width: 52px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .vs-timer.urgent { background: #fecaca; color: #b91c1c; }
+    .vs-gap {
+      font-size: 11px;
+      color: #cbd5e1;
+      min-width: 54px;
+    }
+    .vs-quit-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.14);
+      color: #f8fafc;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .versus-countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 120px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 8px 0 rgba(15, 23, 42, 0.35), 0 0 40px rgba(0, 0, 0, 0.35);
+      z-index: 25;
+      display: none;
+      pointer-events: none;
+    }
+    .versus-toast {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88);
+      color: #f8fafc;
+      padding: 10px 18px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 800;
+      z-index: 26;
+      display: none;
+      pointer-events: none;
+      text-align: center;
+      max-width: 90%;
+    }
+    /* 대전 중에는 판을 멈추거나 바꿀 수 있는 버튼을 숨긴다 */
+    body.versus-active #auto-play-btn,
+    body.versus-active #ranking-btn,
+    body.versus-active #char-select-btn,
+    body.versus-active #versus-btn,
+    body.versus-active #mobile-item-autoplay,
+    body.versus-active #mobile-item-ranking,
+    body.versus-active #mobile-item-char,
+    body.versus-active #mobile-item-versus,
+    body.versus-active #auto-play-badge,
+    body.versus-active .bottom-hint {
+      display: none !important;
+    }
+    .vs-panel {
+      text-align: left;
+    }
+    .vs-field-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+      margin: 10px 0 6px;
+    }
+    .vs-diff-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .vs-diff-btn {
+      flex: 1;
+      padding: 10px 6px;
+      border-radius: 14px;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 13px;
+      font-weight: 800;
+      color: #334155;
+      cursor: pointer;
+    }
+    .vs-diff-btn.active {
+      border-color: #22c55e;
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .vs-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      outline: none;
+      background: #ffffff;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .vs-input:focus { border-color: #22c55e; }
+    .vs-join-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .vs-join-row .vs-input {
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-align: center;
+    }
+    .vs-room-box {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border: 2px dashed #22c55e;
+      border-radius: 16px;
+      background: #f0fdf4;
+      text-align: center;
+    }
+    .vs-room-code {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #15803d;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .vs-status {
+      min-height: 18px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-align: center;
+    }
+    .vs-status.error { color: #dc2626; }
+    .vs-modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .btn-primary:disabled,
+    .btn-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    @media (max-width: 640px) {
+      .versus-hud {
+        top: 58px;
+        padding: 6px 10px;
+        gap: 6px;
+      }
+      .vs-side { font-size: 11px; }
+      .vs-side strong { font-size: 18px; }
+      .vs-name { max-width: 58px; }
+      .vs-gap { display: none; }
+    }
+    body.mobile-sim-active .versus-hud {
+      top: 72px;
+      padding: 6px 10px;
+      gap: 6px;
+    }
+    body.mobile-sim-active .vs-side { font-size: 11px; }
+    body.mobile-sim-active .vs-side strong { font-size: 18px; }
+    body.mobile-sim-active .vs-name { max-width: 58px; }
+    body.mobile-sim-active .vs-gap { display: none; }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -826,6 +1049,9 @@
         <button id="auto-play-btn" class="btn-action" style="color:#0f172a;" title="[P] 키로 토글 가능">
           🤖 자동 플레이: OFF
         </button>
+        <button id="versus-btn" class="btn-action" style="color:#b91c1c;">
+          ⚔️ 대전
+        </button>
         <button id="ranking-btn" class="btn-action">
           🏆 랭킹
         </button>
@@ -852,6 +1078,10 @@
               <span class="m-icon">🤖</span>
               <span id="mobile-autoplay-text" class="m-label">자동 플레이: OFF</span>
             </button>
+            <button id="mobile-item-versus" class="mobile-menu-item">
+              <span class="m-icon">⚔️</span>
+              <span class="m-label">대전 모드 (봇 / 온라인)</span>
+            </button>
             <button id="mobile-item-ranking" class="mobile-menu-item">
               <span class="m-icon">🏆</span>
               <span class="m-label">명예의 전당 (랭킹)</span>
@@ -877,6 +1107,83 @@
     <div id="biome-banner">🌲 GRASSLAND</div>
 
     <div class="bottom-hint">방향키(WASD) 또는 화면 터치/스와이프로 점프!</div>
+  </div>
+
+  <!-- 대전 HUD -->
+  <div id="versus-hud" class="versus-hud">
+    <div id="vs-me-side" class="vs-side me"><span id="vs-me-name" class="vs-name">나</span><strong id="vs-me-score">0</strong></div>
+    <div id="vs-timer" class="vs-timer">1:30</div>
+    <div id="vs-rival-side" class="vs-side rival"><strong id="vs-rival-score">0</strong><span id="vs-rival-name" class="vs-name">상대</span></div>
+    <div id="vs-gap" class="vs-gap"></div>
+    <button id="vs-quit-btn" class="vs-quit-btn" title="대전 나가기">✕</button>
+  </div>
+  <div id="versus-countdown" class="versus-countdown">3</div>
+  <div id="versus-toast" class="versus-toast"></div>
+
+  <!-- 대전 로비 모달 -->
+  <div id="versus-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-title">⚔️ 대전 모드</div>
+      <div class="modal-subtitle" style="margin-bottom: 12px;">같은 맵에서 90초! 더 멀리 간 쪽이 승리합니다</div>
+
+      <div class="ranking-tabs">
+        <button id="vs-tab-bot" class="ranking-tab active">🤖 봇 대전</button>
+        <button id="vs-tab-online" class="ranking-tab">🌐 온라인 1:1</button>
+      </div>
+
+      <div id="vs-panel-bot" class="vs-panel">
+        <div class="vs-field-label">봇 난이도</div>
+        <div class="vs-diff-row">
+          <button class="vs-diff-btn" data-diff="easy">😊 쉬움</button>
+          <button class="vs-diff-btn active" data-diff="normal">🙂 보통</button>
+          <button class="vs-diff-btn" data-diff="hard">😈 어려움</button>
+        </div>
+        <button id="vs-bot-start" class="btn-primary">대전 시작</button>
+      </div>
+
+      <div id="vs-panel-online" class="vs-panel" style="display:none;">
+        <div class="vs-field-label">닉네임</div>
+        <input id="vs-nickname" class="vs-input" type="text" maxlength="8" placeholder="닉네임 (최대 8자)">
+        <button id="vs-create-room" class="btn-primary" style="margin-top: 12px;">방 만들기</button>
+        <div class="vs-join-row">
+          <input id="vs-room-input" class="vs-input" type="text" maxlength="6" placeholder="방 코드" autocomplete="off" autocapitalize="characters">
+          <button id="vs-join-room" class="btn-action" style="justify-content:center; min-width: 76px;">입장</button>
+        </div>
+        <div id="vs-room-box" class="vs-room-box">
+          <div style="font-size: 12px; font-weight: 800; color: #166534;">친구에게 코드나 링크를 보내세요</div>
+          <div id="vs-room-code" class="vs-room-code">------</div>
+          <button id="vs-copy-link" class="btn-action" style="margin: 6px auto 0; justify-content:center;">🔗 초대 링크 복사</button>
+        </div>
+        <div id="vs-online-status" class="vs-status"></div>
+      </div>
+
+      <div class="vs-modal-actions">
+        <button id="vs-close-btn" class="btn-action" style="flex:1; justify-content:center;">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대전 결과 모달 -->
+  <div id="versus-result-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div id="vs-result-title" class="modal-title">승리!</div>
+      <div id="vs-result-reason" class="modal-subtitle" style="margin-bottom:14px;"></div>
+      <div class="modal-scores">
+        <div class="modal-row">
+          <span id="vs-result-me-name">나</span>
+          <strong id="vs-result-me-score">0</strong>
+        </div>
+        <div class="modal-row">
+          <span id="vs-result-rival-name">상대</span>
+          <strong id="vs-result-rival-score" style="color:#ef4444;">0</strong>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button id="vs-rematch-btn" class="btn-primary" style="flex:1.6;">재대결</button>
+        <button id="vs-exit-btn" class="btn-action" style="flex:1; justify-content:center;">나가기</button>
+      </div>
+      <div id="vs-rematch-status" class="key-tag"></div>
+    </div>
   </div>
 
   <!-- 캐릭터 선택 모달 -->
@@ -1306,6 +1613,52 @@
     const GRID_COLS = 21;
     const LANE_START_OFFSET = -8;
     const TOTAL_LANES_BUFFER = 52;
+    const LANES_AHEAD = 36;   // 가장 앞선 참가자 기준으로 미리 생성해 둘 레인 수
+    const LANES_BEHIND = 16;  // 가장 뒤처진 참가자 기준으로 유지할 레인 수
+    const LANE_WIDTH = (GRID_COLS + 14) * CELL_SIZE;
+
+    /* --------------------------------------------------------------------------
+       시드 기반 결정론적 난수 (대전 시 양쪽이 같은 맵을 갖도록)
+       - 레인마다 독립 스트림을 써서 레인 생성 시점·순서와 무관하게 같은 결과를 낸다.
+       - 게임플레이에 영향을 주는 값만 이 난수를 쓰고, 색상·파티클 등 순수 연출은 Math.random 유지.
+       -------------------------------------------------------------------------- */
+    function hash32(...nums) {
+      let h = 0x811C9DC5;
+      for (const n of nums) {
+        h ^= n | 0;
+        h = Math.imul(h, 0x01000193);
+        h ^= h >>> 13;
+      }
+      return h >>> 0;
+    }
+
+    function mulberry32(a) {
+      return function () {
+        a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function laneRng(seed, laneIndex, salt) {
+      return mulberry32(hash32(seed, laneIndex, salt));
+    }
+
+    function newSeed() {
+      return Math.floor(Math.random() * 0x7FFFFFFF);
+    }
+
+    // 좌우로 순환하는 차량·통나무의 x 좌표 (경과 시간의 닫힌 식 → 프레임 속도와 무관)
+    function wrapLaneX(x) {
+      const half = LANE_WIDTH / 2;
+      return ((((x + half) % LANE_WIDTH) + LANE_WIDTH) % LANE_WIDTH) - half;
+    }
+
+    const TRAIN_SPEED = 460;
+    const TRAIN_SPAWN_MARGIN = 170;
+    const TRAIN_EXIT_MARGIN = 200;
+    const TRAIN_TRAVEL_TIME = (LANE_WIDTH + TRAIN_SPAWN_MARGIN + TRAIN_EXIT_MARGIN) / TRAIN_SPEED;
 
     const COLORS = {
       rail: 0x64748B,
@@ -1417,6 +1770,11 @@
     function disposeHierarchy(obj) {
       if (!obj) return;
       obj.traverse(child => {
+        if (child.isSprite) {
+          if (child.material.map) child.material.map.dispose();
+          child.material.dispose();
+          return;
+        }
         if (child.isMesh) {
           if (child.geometry) child.geometry.dispose();
           if (child.material) {
@@ -1437,6 +1795,30 @@
       mesh.castShadow = cast;
       mesh.receiveShadow = receive;
       return mesh;
+    }
+
+    // 캐릭터 머리 위 이름표 (대전 상대 표시용)
+    function createNameTag(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(4, 8, 248, 48, 22);
+      else ctx.rect(4, 8, 248, 48);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 33, 232);
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(64, 16, 1);
+      sprite.renderOrder = 10;
+      return sprite;
     }
 
     /* ==========================================================================
@@ -1871,16 +2253,21 @@
         this.nextLaneIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
         this.consecutive = 0;
+        this.seed = newSeed();
+        this.time = 0; // 판 시작 후 경과한 시뮬레이션 시간(초). 모든 이동 장애물의 위치가 이 값의 함수다.
       }
 
-      init() {
+      init(seed = newSeed()) {
         this.lanes.forEach(l => {
           scene.remove(l.mesh);
           disposeHierarchy(l.mesh);
         });
         this.lanes = [];
+        this.seed = seed >>> 0;
+        this.time = 0;
         this.nextLaneIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
+        this.consecutive = 0;
 
         for (let i = 0; i < 9; i++) {
           this.createLane('grass', false);
@@ -1890,13 +2277,13 @@
         }
       }
 
-      pickNextType(biome) {
+      pickNextType(biome, rand) {
         if (this.consecutive >= 4) {
           this.consecutive = 0;
           return this.lastType === 'grass' ? 'road' : 'grass';
         }
 
-        const r = Math.random();
+        const r = rand();
         let t = 'grass';
 
         if (biome.id === 'snow') {
@@ -1926,13 +2313,14 @@
 
       generateNextLane() {
         const biome = getBiomeForLane(this.nextLaneIndex);
-        const type = this.pickNextType(biome);
+        const type = this.pickNextType(biome, laneRng(this.seed, this.nextLaneIndex, 1));
         this.createLane(type, true);
       }
 
       createLane(type, canHaveObstacles = true) {
+        const rand = laneRng(this.seed, this.nextLaneIndex, 2);
         const z = this.nextLaneIndex * CELL_SIZE;
-        const width = (GRID_COLS + 14) * CELL_SIZE;
+        const width = LANE_WIDTH;
         const laneMesh = new THREE.Group();
         laneMesh.position.set(0, 0, z);
 
@@ -1966,7 +2354,7 @@
           obstacles: [],
           coins: [],
           speed: 0,
-          direction: Math.random() < 0.5 ? 1 : -1,
+          direction: rand() < 0.5 ? 1 : -1,
           trainWarning: false,
           trainTimer: 0,
           bellTimer: 0,
@@ -1977,10 +2365,10 @@
 
         if (type === 'grass') {
           if (canHaveObstacles) {
-            const safeCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 6));
+            const safeCol = Math.floor((rand() - 0.5) * (GRID_COLS - 6));
             for (let c = -Math.floor(GRID_COLS / 2); c <= Math.floor(GRID_COLS / 2); c++) {
               if (Math.abs(c - safeCol) <= 1) continue;
-              if (Math.random() < 0.28) {
+              if (rand() < 0.28) {
                 let obsMesh;
                 if (biome.obstacleType === 'cactus') obsMesh = createCactus();
                 else if (biome.obstacleType === 'snowtree') obsMesh = createSnowPine();
@@ -2001,20 +2389,20 @@
           }
 
           let vehicleType = 'car';
-          const rand = Math.random();
-          if (rand < 0.28) vehicleType = 'truck';
-          else if (rand < 0.42 && biome.id === 'city') vehicleType = 'police';
-          else if (rand < 0.55) vehicleType = 'supercar';
+          const vehicleRoll = rand();
+          if (vehicleRoll < 0.28) vehicleType = 'truck';
+          else if (vehicleRoll < 0.42 && biome.id === 'city') vehicleType = 'police';
+          else if (vehicleRoll < 0.55) vehicleType = 'supercar';
 
           const speedMult = vehicleType === 'supercar' ? 1.6 : (vehicleType === 'police' ? 1.4 : 1.0);
-          laneData.speed = (55 + Math.random() * 65) * speedMult * laneData.direction;
+          laneData.speed = (55 + rand() * 65) * speedMult * laneData.direction;
 
-          const count = vehicleType === 'truck' ? 2 : (vehicleType === 'supercar' ? 2 : (2 + Math.floor(Math.random() * 2)));
+          const count = vehicleType === 'truck' ? 2 : (vehicleType === 'supercar' ? 2 : (2 + Math.floor(rand() * 2)));
           const spacing = width / count;
 
           for (let i = 0; i < count; i++) {
             const vehicle = createVehicle(vehicleType);
-            const x = -width / 2 + i * spacing + (Math.random() * 40 - 20);
+            const x = -width / 2 + i * spacing + (rand() * 40 - 20);
             vehicle.position.x = x;
             if (laneData.direction < 0) vehicle.rotation.y = Math.PI;
             laneMesh.add(vehicle);
@@ -2022,6 +2410,7 @@
             laneData.obstacles.push({
               type: 'vehicle',
               mesh: vehicle,
+              baseX: x,
               halfWidth: vehicleType === 'truck' ? 24 : (vehicleType === 'supercar' ? 18 : 15),
               halfDepth: 8
             });
@@ -2033,28 +2422,29 @@
             laneMesh.add(crack);
           }
         } else if (type === 'river') {
-          laneData.speed = (36 + Math.random() * 48) * laneData.direction;
-          const logLen = Math.random() < 0.45 ? 58 : 80;
+          laneData.speed = (36 + rand() * 48) * laneData.direction;
+          const logLen = rand() < 0.45 ? 58 : 80;
           const count = 3;
           const spacing = width / count;
 
           for (let i = 0; i < count; i++) {
             const log = createLog(logLen);
-            const x = -width / 2 + i * spacing + (Math.random() * 35);
+            const x = -width / 2 + i * spacing + (rand() * 35);
             log.position.x = x;
             laneMesh.add(log);
 
             laneData.obstacles.push({
               type: 'log',
               mesh: log,
+              baseX: x,
               halfWidth: logLen / 2,
               halfDepth: 8
             });
           }
 
-          if (Math.random() < 0.32) {
+          if (rand() < 0.32) {
             const pad = createLilyPad();
-            pad.position.x = (Math.floor(Math.random() * 11) - 5) * CELL_SIZE;
+            pad.position.x = (Math.floor(rand() * 11) - 5) * CELL_SIZE;
             laneMesh.add(pad);
             laneData.obstacles.push({
               type: 'lily',
@@ -2092,108 +2482,138 @@
           laneData.signalLight1 = bulb1;
           laneData.signalLight2 = bulb2;
 
-          laneData.trainTimer = 3.5 + Math.random() * 5;
-          laneData.trainSpeed = 460 * laneData.direction;
+          // 열차 운행표: 판 시작(time=0) 기준 절대 시각으로 관리해 레인이 언제 생성되든 같은 시각에 열차가 온다
+          laneData.trainRng = laneRng(this.seed, this.nextLaneIndex, 3);
+          laneData.nextTrainAt = 3.5 + laneData.trainRng() * 5;
+          laneData.trainSpeed = TRAIN_SPEED * laneData.direction;
         }
 
-        if (canHaveObstacles && Math.random() < 0.16) {
-          const coinCol = Math.floor((Math.random() - 0.5) * (GRID_COLS - 4));
+        if (canHaveObstacles && rand() < 0.16) {
+          const coinCol = Math.floor((rand() - 0.5) * (GRID_COLS - 4));
           const coinMesh = createCoin();
           coinMesh.position.x = coinCol * CELL_SIZE;
           laneMesh.add(coinMesh);
           laneData.coins.push({ mesh: coinMesh, col: coinCol, collected: false });
         }
 
+        // 판 도중에 생성된 레인은 현재 시각의 상태로 조용히 맞춘다
+        this.syncLane(laneData, 0);
+
         scene.add(laneMesh);
         this.lanes.push(laneData);
         this.nextLaneIndex++;
       }
 
-      update(delta, playerZ) {
-        const width = (GRID_COLS + 14) * CELL_SIZE;
+      // 레인의 이동 장애물을 this.time 시점 상태로 맞춘다. delta가 0이면 효과음 없이 상태만 맞춘다.
+      syncLane(lane, delta) {
+        const t = this.time;
+
+        if (lane.type === 'road' || lane.type === 'river') {
+          lane.obstacles.forEach(obs => {
+            if (obs.type === 'lily') return;
+            obs.mesh.position.x = wrapLaneX(obs.baseX + lane.speed * t);
+          });
+          return;
+        }
+
+        if (lane.type !== 'rail') return;
+
+        if (lane.trainInstance && t >= lane.nextTrainAt + TRAIN_TRAVEL_TIME) {
+          lane.mesh.remove(lane.trainInstance.mesh);
+          disposeHierarchy(lane.trainInstance.mesh);
+          lane.trainInstance = null;
+          if (lane.signalLight1) lane.signalLight1.material.color.setHex(0x450A0A);
+          if (lane.signalLight2) lane.signalLight2.material.color.setHex(0x450A0A);
+        }
+        while (t >= lane.nextTrainAt + TRAIN_TRAVEL_TIME) {
+          lane.nextTrainAt += TRAIN_TRAVEL_TIME + 4.5 + lane.trainRng() * 6;
+        }
+
+        if (t >= lane.nextTrainAt) {
+          if (!lane.trainInstance) {
+            if (delta > 0) sfx.playTrainHorn();
+            const trainMesh = createTrain();
+            if (lane.direction < 0) trainMesh.rotation.y = Math.PI;
+            lane.mesh.add(trainMesh);
+            lane.trainInstance = {
+              mesh: trainMesh,
+              halfWidth: 170,
+              halfDepth: 9.5
+            };
+          }
+          const startX = lane.direction > 0
+            ? -LANE_WIDTH / 2 - TRAIN_SPAWN_MARGIN
+            : LANE_WIDTH / 2 + TRAIN_SPAWN_MARGIN;
+          lane.trainInstance.mesh.position.x = startX + lane.trainSpeed * (t - lane.nextTrainAt);
+          lane.trainTimer = 0;
+          lane.trainWarning = true;
+          return;
+        }
+
+        lane.trainTimer = lane.nextTrainAt - t;
+        lane.trainWarning = lane.trainTimer < 1.6;
+        if (lane.trainWarning && delta > 0) {
+          lane.bellTimer -= delta;
+          if (lane.bellTimer <= 0) {
+            sfx.playCrossingBell();
+            lane.bellTimer = 0.28;
+          }
+          const blink = Math.sin(Date.now() * 0.025) > 0;
+          if (lane.signalLight1 && lane.signalLight2) {
+            lane.signalLight1.material.color.setHex(blink ? 0xEF4444 : 0x450A0A);
+            lane.signalLight2.material.color.setHex(!blink ? 0xEF4444 : 0x450A0A);
+          }
+        }
+      }
+
+      // minLaneIdx~maxLaneIdx: 살아 있는 모든 참가자가 서 있는 레인 범위
+      update(delta, minLaneIdx, maxLaneIdx = minLaneIdx) {
+        this.time += delta;
 
         this.lanes.forEach(lane => {
           lane.coins.forEach(c => {
             if (!c.collected) c.mesh.rotation.y += 3.5 * delta;
           });
 
-          if (lane.type === 'road' || lane.type === 'river') {
+          if (lane.type === 'road') {
             lane.obstacles.forEach(obs => {
-              if (obs.type === 'lily') return;
-              obs.mesh.position.x += lane.speed * delta;
-
               if (obs.mesh.sirenRed && obs.mesh.sirenBlue) {
                 const flash = Math.sin(Date.now() * 0.03) > 0;
                 obs.mesh.sirenRed.material.color.setHex(flash ? 0xEF4444 : 0x450A0A);
                 obs.mesh.sirenBlue.material.color.setHex(!flash ? 0x3B82F6 : 0x1E3A8A);
               }
-
-              if (lane.direction > 0 && obs.mesh.position.x > width / 2) {
-                obs.mesh.position.x = -width / 2;
-              } else if (lane.direction < 0 && obs.mesh.position.x < -width / 2) {
-                obs.mesh.position.x = width / 2;
-              }
             });
-          } else if (lane.type === 'rail') {
-            lane.trainTimer -= delta;
-
-            if (lane.trainTimer < 1.6 && lane.trainTimer > 0) {
-              lane.trainWarning = true;
-              lane.bellTimer -= delta;
-              if (lane.bellTimer <= 0) {
-                sfx.playCrossingBell();
-                lane.bellTimer = 0.28;
-              }
-              const blink = Math.sin(Date.now() * 0.025) > 0;
-              if (lane.signalLight1 && lane.signalLight2) {
-                lane.signalLight1.material.color.setHex(blink ? 0xEF4444 : 0x450A0A);
-                lane.signalLight2.material.color.setHex(!blink ? 0xEF4444 : 0x450A0A);
-              }
-            }
-
-            if (lane.trainTimer <= 0 && !lane.trainInstance) {
-              sfx.playTrainHorn();
-              const trainMesh = createTrain();
-              trainMesh.position.x = lane.direction > 0 ? -width / 2 - 170 : width / 2 + 170;
-              if (lane.direction < 0) trainMesh.rotation.y = Math.PI;
-              lane.mesh.add(trainMesh);
-
-              lane.trainInstance = {
-                mesh: trainMesh,
-                halfWidth: 170,
-                halfDepth: 9.5
-              };
-            }
-
-            if (lane.trainInstance) {
-              lane.trainInstance.mesh.position.x += lane.trainSpeed * delta;
-              const tx = lane.trainInstance.mesh.position.x;
-              if ((lane.direction > 0 && tx > width / 2 + 200) || (lane.direction < 0 && tx < -width / 2 - 200)) {
-                lane.mesh.remove(lane.trainInstance.mesh);
-                disposeHierarchy(lane.trainInstance.mesh);
-                lane.trainInstance = null;
-                lane.trainWarning = false;
-                if (lane.signalLight1) lane.signalLight1.material.color.setHex(0x450A0A);
-                if (lane.signalLight2) lane.signalLight2.material.color.setHex(0x450A0A);
-                lane.trainTimer = 4.5 + Math.random() * 6;
-              }
-            }
           }
+
+          this.syncLane(lane, delta);
         });
 
-        const playerLaneIdx = Math.round(playerZ / CELL_SIZE);
-        while (this.lanes.length > 0 && this.lanes[0].index < playerLaneIdx - 16) {
+        while (this.lanes.length > 0 && this.lanes[0].index < minLaneIdx - LANES_BEHIND) {
           const old = this.lanes.shift();
           scene.remove(old.mesh);
           disposeHierarchy(old.mesh);
         }
-        while (this.lanes.length < TOTAL_LANES_BUFFER) {
+        while (this.lanes.length < TOTAL_LANES_BUFFER || this.nextLaneIndex < maxLaneIdx + LANES_AHEAD) {
           this.generateNextLane();
         }
       }
 
       getLane(index) {
         return this.lanes.find(l => l.index === index);
+      }
+
+      // 같은 시드라면 같은 값이 나와야 하는 맵 지문 (대전 동기화 검증용)
+      signature(fromIndex, toIndex) {
+        let h = 0x811C9DC5;
+        for (const lane of this.lanes) {
+          if (lane.index < fromIndex || lane.index > toIndex) continue;
+          const parts = [lane.index, lane.type, lane.direction, Math.round(lane.speed * 1000)];
+          lane.obstacles.forEach(o => parts.push(o.type, o.col ?? '', Math.round(o.mesh.position.x * 100)));
+          lane.coins.forEach(c => parts.push('c', c.col));
+          if (lane.type === 'rail') parts.push(Math.round(lane.nextTrainAt * 1000));
+          h = hash32(h, ...Array.from(parts.join('|'), ch => ch.charCodeAt(0)));
+        }
+        return h.toString(16);
       }
     }
 
@@ -2202,11 +2622,18 @@
        10-1. 인공지능 자율 주행 에이전트 (Auto-Play Agent with Smart Pathfinding)
        ========================================================================== */
     class AutoPlayAgent {
-      constructor() {
+      // getPlayer/getCameraZ: 조종할 플레이어와 그 플레이어 기준 카메라 z (대전 봇은 자신만의 가상 카메라를 쓴다)
+      // primary: 화면 주인공을 조종하는 기본 자동 플레이 여부 (게임 오버 시 자동 재시작·UI 갱신 담당)
+      constructor({ getPlayer = () => player, getCameraZ = () => cameraZ, primary = true } = {}) {
+        this.getPlayer = getPlayer;
+        this.getCameraZ = getCameraZ;
+        this.primary = primary;
         this.enabled = false;
         this.godMode = false; // 무적 모드 (테스트/데모 시연용)
         this.timer = 0;
         this.decisionInterval = 0.08; // 80ms 주기 판단
+        this.blunderRate = 0; // 대기해야 할 상황에서 무모하게 전진할 확률 (대전 봇 난이도)
+        this.dodgeDanger = true; // 도로·철로 위에서 대기 중 차량·열차가 다가오면 피한다
         this.restartTimer = 0;
         this.lastMoveTime = 0;
       }
@@ -2224,6 +2651,7 @@
       }
 
       updateUI() {
+        if (!this.primary) return;
         const btn = document.getElementById('auto-play-btn');
         const badge = document.getElementById('auto-play-badge');
         if (btn) {
@@ -2241,7 +2669,8 @@
       update(delta) {
         if (!this.enabled) return;
 
-        if (isGameOver) {
+        if (this.primary && isGameOver) {
+          if (versus.active) return;
           this.restartTimer += delta;
           if (this.restartTimer > 1.0) {
             this.restartTimer = 0;
@@ -2251,15 +2680,19 @@
         }
         this.restartTimer = 0;
 
-        if (player.isDead || player.isJumping || player.isSliding) return;
+        const p = this.getPlayer();
+        if (p.isDead || p.isJumping || p.isSliding) return;
 
         this.timer += delta;
         if (this.timer < this.decisionInterval) return;
         this.timer = 0;
 
-        const move = this.decideMove();
+        let move = this.decideMove();
+        if (!move && this.blunderRate > 0 && Math.random() < this.blunderRate) {
+          move = { dCol: 0, dLane: 1 };
+        }
         if (move) {
-          player.queueMove(move.dCol, move.dLane);
+          p.queueMove(move.dCol, move.dLane);
           this.lastMoveTime = performance.now();
         }
       }
@@ -2334,6 +2767,7 @@
 
       // 최선의 행동 결정 (BFS 스타일 최근접 안전 슬롯 탐색 & 핑퐁 방지)
       decideMove() {
+        const player = this.getPlayer();
         const curCol = player.col;
         const curLane = player.laneIndex;
         const curLaneObj = laneManager.getLane(curLane);
@@ -2357,7 +2791,16 @@
           return { dCol: 1, dLane: 0 };
         }
 
-        const behindDist = cameraZ - player.mesh.position.z;
+        // 0. 서 있는 도로·철로 칸이 곧 위험해지면 전진 → 좌우 → 후진 순으로 회피
+        if (this.dodgeDanger && curLaneObj && (curLaneObj.type === 'road' || curLaneObj.type === 'rail') &&
+            !this.isPositionSafe(curCol, curLane, 0.3)) {
+          const escapes = [{ dCol: 0, dLane: 1 }, { dCol: 1, dLane: 0 }, { dCol: -1, dLane: 0 }, { dCol: 0, dLane: -1 }];
+          for (const esc of escapes) {
+            if (this.isPositionSafe(curCol + esc.dCol, curLane + esc.dLane)) return esc;
+          }
+        }
+
+        const behindDist = this.getCameraZ() - player.mesh.position.z;
         const urgent = behindDist > 55;
 
         // 1. 통나무 위일 때의 로직
@@ -2371,12 +2814,15 @@
               return { dCol: sign, dLane: 1 };
             }
           }
-          // 화면 밖으로 흘러갈 위험 시 중앙 쪽으로 이동
-          const driftBorder = (Math.floor(GRID_COLS / 2) - 2) * CELL_SIZE;
+          // 화면 밖으로 흘러갈 위험 시 중앙 쪽 → 뒤쪽 순으로 탈출
+          const driftBorder = (Math.floor(GRID_COLS / 2) - (this.dodgeDanger ? 3 : 2)) * CELL_SIZE;
           if (Math.abs(player.mesh.position.x) > driftBorder) {
             const stepDir = player.mesh.position.x > 0 ? -1 : 1;
-            if (this.isPositionSafe(curCol + stepDir, curLane)) {
-              return { dCol: stepDir, dLane: 0 };
+            const escapes = this.dodgeDanger
+              ? [{ dCol: stepDir, dLane: 0 }, { dCol: 0, dLane: -1 }, { dCol: stepDir, dLane: -1 }]
+              : [{ dCol: stepDir, dLane: 0 }];
+            for (const esc of escapes) {
+              if (this.isPositionSafe(curCol + esc.dCol, curLane + esc.dLane)) return esc;
             }
           }
           return null;
@@ -2463,11 +2909,40 @@
        9. 플레이어 시스템 (캐릭터 모델 동적 교체 지원)
        ========================================================================== */
     class Player {
-      constructor(charId = 'chicken') {
+      // ghost: 대전 상대처럼 반투명으로 그리고 이름표를 붙인다 / silent: 효과음을 내지 않는다
+      constructor(charId = 'chicken', { ghost = false, silent = false, label = '' } = {}) {
         this.charId = charId;
-        this.mesh = buildCharacterModel(charId);
+        this.ghost = ghost;
+        this.silent = silent;
+        this.label = label;
+        this.onDeath = null;
+        this.mesh = this.buildMesh(charId);
         scene.add(this.mesh);
         this.reset();
+      }
+
+      buildMesh(charId) {
+        const mesh = buildCharacterModel(charId);
+        if (this.ghost) {
+          mesh.traverse(child => {
+            if (!child.isMesh) return;
+            child.material.transparent = true;
+            child.material.opacity = 0.55;
+            child.castShadow = false;
+          });
+          if (this.label) {
+            const tag = createNameTag(this.label);
+            tag.position.y = 40;
+            mesh.add(tag);
+          }
+        }
+        return mesh;
+      }
+
+      die(reason) {
+        if (this.isDead) return;
+        this.isDead = true;
+        if (this.onDeath) this.onDeath(reason);
       }
 
       // 캐릭터 교체 함수
@@ -2478,7 +2953,7 @@
         scene.remove(this.mesh);
         disposeHierarchy(this.mesh);
 
-        this.mesh = buildCharacterModel(newCharId);
+        this.mesh = this.buildMesh(newCharId);
         this.mesh.position.copy(oldPos);
         this.mesh.rotation.y = oldRot;
         scene.add(this.mesh);
@@ -2542,7 +3017,7 @@
         this.jumpProgress = 0;
         this.onPlatform = null;
 
-        sfx.playJump(this.charId);
+        if (!this.silent) sfx.playJump(this.charId);
         particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, 0x94A3B8, 4, 18);
       }
 
@@ -2610,8 +3085,8 @@
 
               const maxCol = Math.floor(GRID_COLS / 2) + 2;
               if (Math.abs(this.col) > maxCol) {
-                sfx.playSplash();
-                triggerGameOver('화면 밖으로 떠내려갔습니다!');
+                if (!this.silent) sfx.playSplash();
+                this.die('화면 밖으로 떠내려갔습니다!');
               }
             } else if (this.onPlatform.type === 'lily') {
               this.mesh.position.y = 1;
@@ -2628,7 +3103,7 @@
         const maxCol = Math.floor(GRID_COLS / 2);
         if (nextCol < -maxCol || nextCol > maxCol) return;
 
-        sfx.playSlide();
+        if (!this.silent) sfx.playSlide();
         particleSys.create(this.mesh.position.x, 1, this.mesh.position.z, COLORS.iceCrack, 6, 20);
 
         this.col = nextCol;
@@ -2645,6 +3120,7 @@
        ========================================================================== */
     const laneManager = new LaneManager();
     const player = new Player(selectedCharId);
+    player.onDeath = reason => triggerGameOver(reason);
 
     /* ==========================================================================
        명예의 전당 (Top 10 Leaderboard) 관리자
@@ -2924,7 +3400,17 @@
     /* ==========================================================================
        11. 조작 이벤트 리스너
        ========================================================================== */
+    // 대전 로비·결과 화면이 떠 있거나 카운트다운 중이면 캐릭터 조작을 막는다
+    function isVersusInputBlocked() {
+      const vm = document.getElementById('versus-modal');
+      const vrm = document.getElementById('versus-result-modal');
+      if (vm && vm.style.display === 'flex') return true;
+      if (vrm && vrm.style.display === 'flex') return true;
+      return versus.active && versus.phase !== 'running';
+    }
+
     window.addEventListener('keydown', e => {
+      if (e.target && e.target.tagName === 'INPUT') return;
       sfx.init();
 
       if (charModal.style.display === 'flex') {
@@ -2934,8 +3420,10 @@
         return;
       }
 
+      if (isVersusInputBlocked()) return;
+
       if (isGameOver) {
-        if (e.code === 'Space' || e.code === 'Enter') restartGame();
+        if (!versus.active && (e.code === 'Space' || e.code === 'Enter')) restartGame();
         return;
       }
 
@@ -2959,9 +3447,11 @@
 
     window.addEventListener('touchend', e => {
       if (charModal.style.display === 'flex') return;
+      if (e.target && e.target.closest && e.target.closest('.modal-overlay, .versus-hud')) return;
+      if (isVersusInputBlocked()) return;
 
       if (isGameOver) {
-        restartGame();
+        if (!versus.active) restartGame();
         return;
       }
       const dx = e.changedTouches[0].clientX - touchStartX;
@@ -2984,31 +3474,33 @@
     /* ==========================================================================
        12. 충돌 판정 & 독수리 급강하
        ========================================================================== */
-    function checkCollisions() {
-      if (player.isDead) return;
-      if (autoPlayAgent && autoPlayAgent.enabled && autoPlayAgent.godMode) return;
+    // p: 판정할 플레이어. 화면 주인공(player)만 코인을 줍고 독수리에게 쫓긴다 (대전 봇은 가상 카메라로 별도 판정)
+    function checkCollisions(p) {
+      if (p.isDead) return;
+      const isHuman = p === player;
+      if (isHuman && autoPlayAgent && autoPlayAgent.enabled && autoPlayAgent.godMode) return;
 
-      const currentLane = laneManager.getLane(player.laneIndex);
+      const currentLane = laneManager.getLane(p.laneIndex);
       if (!currentLane) return;
 
       // 1. 코인 수집
-      currentLane.coins.forEach(coin => {
-        if (!coin.collected && Math.abs(player.mesh.position.x - coin.mesh.position.x) < 14) {
+      if (isHuman) currentLane.coins.forEach(coin => {
+        if (!coin.collected && Math.abs(p.mesh.position.x - coin.mesh.position.x) < 14) {
           coin.collected = true;
           currentLane.mesh.remove(coin.mesh);
           disposeHierarchy(coin.mesh);
           coins++;
           localStorage.setItem('crossy_coins', coins.toString());
           document.getElementById('coin-display').innerText = coins;
-          sfx.playCoin();
-          particleSys.create(player.mesh.position.x, 8, currentLane.z, COLORS.coin, 8, 28);
+          if (!p.silent) sfx.playCoin();
+          particleSys.create(p.mesh.position.x, 8, currentLane.z, COLORS.coin, 8, 28);
         }
       });
 
       // 2. 차량 충돌
       if (currentLane.type === 'road') {
-        const pX = player.mesh.position.x;
-        const pZ = player.mesh.position.z;
+        const pX = p.mesh.position.x;
+        const pZ = p.mesh.position.z;
 
         for (const car of currentLane.obstacles) {
           const cX = car.mesh.position.x;
@@ -3017,12 +3509,12 @@
             Math.abs(pX - cX) < car.halfWidth + 6 &&
             Math.abs(pZ - cZ) < car.halfDepth + 6
           ) {
-            sfx.playCrash();
-            const charObj = CHARACTERS.find(c => c.id === player.charId) || CHARACTERS[0];
+            if (!p.silent) sfx.playCrash();
+            const charObj = CHARACTERS.find(c => c.id === p.charId) || CHARACTERS[0];
             particleSys.create(pX, 8, pZ, charObj.featherColor, 18, 55);
             particleSys.create(pX, 8, pZ, 0xEF4444, 8, 45);
-            player.mesh.scale.set(1.6, 0.12, 1.6);
-            triggerGameOver('차량에 치였습니다!');
+            p.mesh.scale.set(1.6, 0.12, 1.6);
+            p.die('차량에 치였습니다!');
             return;
           }
         }
@@ -3034,29 +3526,29 @@
         const tX = train.mesh.position.x;
         const tZ = currentLane.z;
         if (
-          Math.abs(player.mesh.position.x - tX) < train.halfWidth + 6 &&
-          Math.abs(player.mesh.position.z - tZ) < train.halfDepth + 6
+          Math.abs(p.mesh.position.x - tX) < train.halfWidth + 6 &&
+          Math.abs(p.mesh.position.z - tZ) < train.halfDepth + 6
         ) {
-          sfx.playCrash();
-          const charObj = CHARACTERS.find(c => c.id === player.charId) || CHARACTERS[0];
-          particleSys.create(player.mesh.position.x, 10, tZ, charObj.featherColor, 24, 70);
-          particleSys.create(player.mesh.position.x, 10, tZ, 0xEF4444, 12, 60);
-          player.mesh.scale.set(1.8, 0.08, 1.8);
-          triggerGameOver('초고속 열차에 치였습니다!');
+          if (!p.silent) sfx.playCrash();
+          const charObj = CHARACTERS.find(c => c.id === p.charId) || CHARACTERS[0];
+          particleSys.create(p.mesh.position.x, 10, tZ, charObj.featherColor, 24, 70);
+          particleSys.create(p.mesh.position.x, 10, tZ, 0xEF4444, 12, 60);
+          p.mesh.scale.set(1.8, 0.08, 1.8);
+          p.die('초고속 열차에 치였습니다!');
           return;
         }
       }
 
       // 4. 강물 판정
-      if (currentLane.type === 'river' && !player.isJumping && !player.isSliding) {
+      if (currentLane.type === 'river' && !p.isJumping && !p.isSliding) {
         let landed = null;
 
         for (const obs of currentLane.obstacles) {
           const ox = obs.mesh.position.x;
           const oz = currentLane.z;
           if (
-            Math.abs(player.mesh.position.x - ox) < obs.halfWidth + 3 &&
-            Math.abs(player.mesh.position.z - oz) < obs.halfDepth + 3
+            Math.abs(p.mesh.position.x - ox) < obs.halfWidth + 3 &&
+            Math.abs(p.mesh.position.z - oz) < obs.halfDepth + 3
           ) {
             landed = { type: obs.type, obs: obs, lane: currentLane };
             break;
@@ -3064,20 +3556,20 @@
         }
 
         if (landed) {
-          player.onPlatform = landed;
+          p.onPlatform = landed;
         } else {
-          sfx.playSplash();
-          particleSys.create(player.mesh.position.x, 2, currentLane.z, currentLane.biome.waterColor, 16, 40);
-          particleSys.create(player.mesh.position.x, 2, currentLane.z, 0xFFFFFF, 10, 30);
-          player.mesh.position.y = -8;
-          player.mesh.scale.set(0.5, 0.5, 0.5);
-          triggerGameOver('강물에 빠졌습니다!');
+          if (!p.silent) sfx.playSplash();
+          particleSys.create(p.mesh.position.x, 2, currentLane.z, currentLane.biome.waterColor, 16, 40);
+          particleSys.create(p.mesh.position.x, 2, currentLane.z, 0xFFFFFF, 10, 30);
+          p.mesh.position.y = -8;
+          p.mesh.scale.set(0.5, 0.5, 0.5);
+          p.die('강물에 빠졌습니다!');
         }
       }
 
       // 5. 독수리 급강하 판정
-      const playerBehindCamera = cameraZ - player.mesh.position.z;
-      if (playerBehindCamera > 130 && !eagleActive && !isGameOver) {
+      const playerBehindCamera = cameraZ - p.mesh.position.z;
+      if (isHuman && playerBehindCamera > 130 && !eagleActive && !isGameOver) {
         spawnEagle();
       }
     }
@@ -3102,6 +3594,11 @@
       isGameOver = true;
       player.isDead = true;
       rankSubmitted = false;
+
+      if (versus.active) {
+        onVersusLocalDeath(reason);
+        return;
+      }
 
       if (score > highScore) {
         highScore = score;
@@ -3132,7 +3629,7 @@
       document.getElementById('game-over-modal').style.display = 'flex';
     }
 
-    function restartGame() {
+    function restartGame(seed = newSeed()) {
       document.getElementById('game-over-modal').style.display = 'none';
       if (eagle) {
         scene.remove(eagle);
@@ -3143,7 +3640,8 @@
       isGameOver = false;
 
       player.reset();
-      laneManager.init();
+      player.mesh.visible = true;
+      laneManager.init(seed);
       particleSys.clear();
 
       score = 0;
@@ -3156,7 +3654,7 @@
       document.getElementById('score-display').innerText = '0';
     }
 
-    document.getElementById('restart-btn').addEventListener('click', restartGame);
+    document.getElementById('restart-btn').addEventListener('click', () => restartGame());
 
     // 랭킹 모달 이벤트
     const rankingModal = document.getElementById('ranking-modal');
@@ -3175,12 +3673,14 @@
     if (autoPlayBtn) {
       autoPlayBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (versus.active) return;
         autoPlayAgent.toggle();
       });
     }
 
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyP') {
+      if (e.target && e.target.tagName === 'INPUT') return;
+      if (e.code === 'KeyP' && !versus.active) {
         autoPlayAgent.toggle();
       }
     });
@@ -3404,6 +3904,1010 @@
     }
 
     /* ==========================================================================
+       14. 대전 모드 (봇 대전 / 온라인 1:1)
+       - 두 참가자가 같은 시드의 맵을 각자 달리고, 상대는 반투명 고스트로만 보인다 (서로 충돌하지 않음).
+       - 승리 규칙: 90초 레이스. 죽으면 그 시점 점수로 고정되고, 점수가 높은 쪽이 이긴다.
+         동점이면 그 점수에 먼저 도달한 쪽이 이긴다.
+       - 판정은 각자 자기 화면에서 한다 (클라이언트 판정 → 온라인에서 치팅 방지는 하지 않는다. DECISIONS.md 참고).
+       ========================================================================== */
+    const VERSUS_DURATION = 90;          // 초
+    const VERSUS_COUNTDOWN_MS = 3000;
+    const VERSUS_MAX_LANE_SPREAD = 120;  // 상대를 위해 미리 만들어 둘 최대 레인 폭
+    const BOT_EAGLE_DISTANCE = 130;      // 사람과 같은 기준: 가상 카메라보다 이만큼 뒤처지면 독수리에게 잡힌다
+
+    // 봇 대전 난이도: 판단 주기·무모한 전진 확률·위험 회피 여부로 조절
+    // (같은 40개 시드 90초 시뮬레이션 평균 점수: 쉬움 ≈ 9, 보통 ≈ 21, 어려움 ≈ 46 — DECISIONS.md 참고)
+    const BOT_DIFFICULTY = {
+      easy: { label: '쉬움', decisionInterval: 0.3, blunderRate: 0.03, dodgeDanger: false },
+      normal: { label: '보통', decisionInterval: 0.2, blunderRate: 0.02, dodgeDanger: true },
+      hard: { label: '어려움', decisionInterval: 0.08, blunderRate: 0, dodgeDanger: true }
+    };
+
+    const versus = {
+      active: false,
+      mode: null,          // 'bot' | 'online'
+      phase: 'idle',       // 'countdown' | 'running' | 'settling' | 'finished'
+      countdownEnd: 0,
+      startPerf: 0,
+      elapsed: 0,
+      difficulty: 'normal',
+      me: null,
+      rival: null,
+      bot: null,           // { player, agent, cameraZ }
+      ghost: null,         // 온라인 상대 고스트 { player, target, hopT, lastLane, lastCol, deadShown }
+      endReason: null,
+      lastCountdownShown: -1,
+      toastTimer: null
+    };
+
+    function makeCompetitor(name, charId) {
+      return { name, charId, score: 0, reachedAt: 0, dead: false, deathReason: '' };
+    }
+
+    function sanitizeNickname(raw) {
+      const nick = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 8);
+      return nick || '길건너용사';
+    }
+
+    function getPlayerName() {
+      return sanitizeNickname(localStorage.getItem('crossy_player_name'));
+    }
+
+    function isValidCharId(id) {
+      return CHARACTERS.some(c => c.id === id);
+    }
+
+    function formatClock(seconds) {
+      const s = Math.max(0, Math.ceil(seconds));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function showVersusToast(text, ms = 2400) {
+      const el = document.getElementById('versus-toast');
+      el.textContent = text;
+      el.style.display = 'block';
+      clearTimeout(versus.toastTimer);
+      versus.toastTimer = setTimeout(() => { el.style.display = 'none'; }, ms);
+    }
+
+    // 승자 판정: 점수 → 도달 시각 순. 양쪽 클라이언트가 같은 입력이면 같은 결과를 낸다.
+    function decideWinner(me, rival) {
+      if (me.score !== rival.score) return me.score > rival.score ? 'me' : 'rival';
+      const a = Math.round(me.reachedAt * 100);
+      const b = Math.round(rival.reachedAt * 100);
+      if (a !== b) return a < b ? 'me' : 'rival';
+      return 'draw';
+    }
+
+    function closeOverlaysForMatch() {
+      ['game-over-modal', 'char-modal', 'ranking-modal', 'versus-modal', 'versus-result-modal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      const mdm = document.getElementById('mobile-dropdown-menu');
+      if (mdm) mdm.classList.remove('open');
+    }
+
+    function removeVersusRival() {
+      if (versus.bot) {
+        scene.remove(versus.bot.player.mesh);
+        disposeHierarchy(versus.bot.player.mesh);
+        versus.bot = null;
+      }
+      if (versus.ghost) {
+        scene.remove(versus.ghost.player.mesh);
+        disposeHierarchy(versus.ghost.player.mesh);
+        versus.ghost = null;
+      }
+    }
+
+    function startVersusMatch({ mode, seed, rivalName, rivalCharId, countdownMs = VERSUS_COUNTDOWN_MS }) {
+      closeOverlaysForMatch();
+      removeVersusRival();
+      autoPlayAgent.setEnabled(false);
+
+      versus.active = true;
+      versus.mode = mode;
+      versus.phase = 'countdown';
+      versus.countdownEnd = performance.now() + countdownMs;
+      versus.elapsed = 0;
+      versus.endReason = null;
+      versus.lastCountdownShown = -1;
+      versus.me = makeCompetitor(getPlayerName(), selectedCharId);
+      versus.rival = makeCompetitor(sanitizeNickname(rivalName), isValidCharId(rivalCharId) ? rivalCharId : 'chicken');
+      document.body.classList.add('versus-active');
+
+      restartGame(seed);
+
+      const rivalLabel = mode === 'bot'
+        ? `🤖 ${versus.rival.name}`
+        : versus.rival.name;
+      const rivalPlayer = new Player(versus.rival.charId, { ghost: true, silent: true, label: rivalLabel });
+
+      if (mode === 'bot') {
+        const cfg = BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal;
+        const bot = { player: rivalPlayer, cameraZ: 0, agent: null };
+        bot.agent = new AutoPlayAgent({ getPlayer: () => bot.player, getCameraZ: () => bot.cameraZ, primary: false });
+        bot.agent.decisionInterval = cfg.decisionInterval;
+        bot.agent.blunderRate = cfg.blunderRate;
+        bot.agent.dodgeDanger = cfg.dodgeDanger;
+        bot.agent.enabled = true;
+        rivalPlayer.onDeath = reason => onVersusRivalDeath(reason);
+        versus.bot = bot;
+      } else {
+        versus.ghost = {
+          player: rivalPlayer,
+          target: { lane: 0, col: 0, x: 0, onLog: false },
+          hopT: 1,
+          lastLane: 0,
+          lastCol: 0,
+          deadShown: false
+        };
+      }
+
+      document.getElementById('vs-me-name').textContent = versus.me.name;
+      document.getElementById('vs-rival-name').textContent = versus.rival.name;
+      clock.getDelta();
+      lastVersusHudKey = '';
+      updateVersusHud();
+    }
+
+    function onVersusLocalDeath(reason) {
+      if (!versus.me || versus.me.dead) return;
+      versus.me.dead = true;
+      versus.me.deathReason = reason;
+      const rivalAlive = versus.rival && !versus.rival.dead;
+      showVersusToast(`💥 탈락! ${reason}${rivalAlive && versus.phase === 'running' ? ' — 상대를 관전합니다' : ''}`, 3000);
+      if (versus.mode === 'online') sendVersusState(true);
+    }
+
+    function onVersusRivalDeath(reason) {
+      if (!versus.rival || versus.rival.dead) return;
+      versus.rival.dead = true;
+      versus.rival.deathReason = reason || '';
+      if (versus.phase === 'running') showVersusToast(`🎯 ${versus.rival.name} 탈락!${reason ? ' ' + reason : ''}`);
+    }
+
+    // 관전 대상: 내가 탈락했고 상대가 아직 달리는 중이면 상대 캐릭터를 비춘다
+    function getSpectateMesh() {
+      if (!versus.active || !player.isDead) return null;
+      if (versus.bot && !versus.bot.player.isDead) return versus.bot.player.mesh;
+      if (versus.ghost && versus.rival && !versus.rival.dead) return versus.ghost.player.mesh;
+      return null;
+    }
+
+    // 레인을 유지·생성해야 하는 범위 (살아 있는 참가자 모두를 덮는다)
+    function getActiveLaneRange() {
+      const spect = getSpectateMesh();
+      const focusLane = spect ? Math.round(spect.position.z / CELL_SIZE) : player.laneIndex;
+      let min = focusLane;
+      let max = focusLane;
+      if (versus.bot && !versus.bot.player.isDead) {
+        min = Math.min(min, versus.bot.player.laneIndex);
+        max = Math.max(max, versus.bot.player.laneIndex);
+      }
+      // 온라인 상대가 뒤처져 있어도 그 레인을 지우지 않는다 (내가 탈락하면 상대를 관전하므로)
+      if (versus.ghost && versus.rival && !versus.rival.dead) {
+        min = Math.min(min, versus.ghost.target.lane);
+        max = Math.max(max, versus.ghost.target.lane);
+      }
+      // 상대가 아주 멀리 있어도 화면 주인공 주변 레인은 항상 확보한다
+      return {
+        min: Math.max(min, focusLane - VERSUS_MAX_LANE_SPREAD),
+        max: Math.min(max, focusLane + VERSUS_MAX_LANE_SPREAD)
+      };
+    }
+
+    // 월드 시뮬레이션 한 스텝 중 대전 상대 몫 (레인 갱신 전에 호출)
+    function versusStep(delta) {
+      if (versus.phase !== 'running') return;
+      if (versus.mode === 'bot') versus.elapsed = Math.min(VERSUS_DURATION, versus.elapsed + delta);
+
+      const bot = versus.bot;
+      if (bot) {
+        bot.agent.update(delta);
+        bot.player.update(delta);
+        if (!bot.player.isDead) {
+          const botZ = bot.player.mesh.position.z;
+          bot.cameraZ += (Math.max(cameraMinZ, botZ + 10) - bot.cameraZ) * 0.08;
+          if (bot.cameraZ - botZ > BOT_EAGLE_DISTANCE) {
+            particleSys.create(bot.player.mesh.position.x, 10, botZ, 0xFFFFFF, 10, 40);
+            bot.player.mesh.visible = false;
+            bot.player.die('독수리에게 낚아채였습니다!');
+          } else if (bot.player.laneIndex > versus.rival.score) {
+            versus.rival.score = bot.player.laneIndex;
+            versus.rival.reachedAt = versus.elapsed;
+          }
+        }
+      }
+
+      if (versus.ghost) animateVersusGhost(delta);
+    }
+
+    function animateVersusGhost(delta) {
+      const g = versus.ghost;
+      const mesh = g.player.mesh;
+      const t = g.target;
+      if (t.lane !== g.lastLane || t.col !== g.lastCol) {
+        mesh.rotation.y = Math.atan2(t.col - g.lastCol, t.lane - g.lastLane);
+        g.lastLane = t.lane;
+        g.lastCol = t.col;
+        g.hopT = 0;
+      }
+      const k = 1 - Math.exp(-delta * 14);
+      mesh.position.x += (t.x - mesh.position.x) * k;
+      mesh.position.z += (t.lane * CELL_SIZE - mesh.position.z) * k;
+      if (g.hopT < 1) {
+        g.hopT = Math.min(1, g.hopT + delta / 0.15);
+        mesh.position.y = Math.sin(g.hopT * Math.PI) * 14;
+      } else {
+        mesh.position.y = t.onLog ? 5.5 : 0;
+      }
+      if (versus.rival.dead && !g.deadShown) {
+        g.deadShown = true;
+        mesh.scale.set(1.5, 0.15, 1.5);
+        const charObj = CHARACTERS.find(c => c.id === g.player.charId) || CHARACTERS[0];
+        particleSys.create(mesh.position.x, 8, mesh.position.z, charObj.featherColor, 14, 45);
+      }
+    }
+
+    // 매 프레임 (일시정지 여부와 무관하게) 호출: 카운트다운·타이머·네트워크·종료 판정
+    function versusFrame(now) {
+      if (!versus.active) return;
+      const countdownEl = document.getElementById('versus-countdown');
+
+      if (versus.phase === 'countdown') {
+        const left = versus.countdownEnd - now;
+        if (left <= 0) {
+          versus.phase = 'running';
+          versus.startPerf = versus.countdownEnd;
+          versus.lastCountdownShown = 0;
+          countdownEl.textContent = 'GO!';
+          countdownEl.style.display = 'block';
+          setTimeout(() => {
+            if (versus.phase === 'running' && versus.lastCountdownShown === 0) countdownEl.style.display = 'none';
+          }, 650);
+          sfx.playStageFanfare();
+          clock.getDelta();
+        } else {
+          const n = Math.ceil(left / 1000);
+          if (n !== versus.lastCountdownShown) {
+            versus.lastCountdownShown = n;
+            countdownEl.textContent = String(n);
+            countdownEl.style.display = 'block';
+            sfx.playCoin();
+          }
+        }
+      }
+
+      if (versus.mode === 'online') {
+        if (versus.phase === 'running') {
+          versus.elapsed = Math.min(VERSUS_DURATION, (now - versus.startPerf) / 1000);
+        }
+        onlineTick(now);
+      }
+
+      // 온라인은 animate()가 월드를 레이스 시계까지 따라잡은 뒤에 판정한다 (마지막 구간 누락 방지)
+      if (versus.mode !== 'online' || laneManager.time >= versus.elapsed - 1e-6) settleVersusIfOver();
+      updateVersusHud();
+    }
+
+    function settleVersusIfOver() {
+      if (versus.phase !== 'running') return;
+      const reason = checkVersusEnd();
+      if (reason) finishVersus(reason);
+    }
+
+    function checkVersusEnd() {
+      const { me, rival } = versus;
+      if (versus.elapsed >= VERSUS_DURATION) return 'time';
+      if (me.dead && rival.dead) return 'both-dead';
+      if (me.dead && rival.score > me.score) return 'decided';
+      if (rival.dead && me.score > rival.score) return 'decided';
+      return null;
+    }
+
+    let lastVersusHudKey = '';
+    function updateVersusHud() {
+      if (!versus.active || !versus.me) return;
+      const { me, rival } = versus;
+      const remaining = VERSUS_DURATION - versus.elapsed;
+      const clockText = formatClock(remaining);
+      const urgent = versus.phase === 'running' && remaining <= 10;
+      // 매 프레임 호출되므로 표시 값이 바뀐 경우에만 DOM을 건드린다
+      const key = `${me.score}|${rival.score}|${me.dead}|${rival.dead}|${clockText}|${urgent}`;
+      if (key === lastVersusHudKey) return;
+      lastVersusHudKey = key;
+
+      document.getElementById('vs-me-score').textContent = me.score;
+      document.getElementById('vs-rival-score').textContent = rival.score;
+      document.getElementById('vs-me-side').classList.toggle('dead', me.dead);
+      document.getElementById('vs-rival-side').classList.toggle('dead', rival.dead);
+      const timerEl = document.getElementById('vs-timer');
+      timerEl.textContent = clockText;
+      timerEl.classList.toggle('urgent', urgent);
+      const diff = me.score - rival.score;
+      document.getElementById('vs-gap').textContent = diff === 0 ? '동점' : (diff > 0 ? `내가 +${diff}` : `상대 +${-diff}`);
+    }
+
+    function finishVersus(reason) {
+      if (versus.phase !== 'running') return;
+      versus.phase = 'settling';
+      versus.endReason = reason;
+      document.getElementById('versus-countdown').style.display = 'none';
+      if (versus.bot) versus.bot.agent.enabled = false;
+
+      if (versus.mode === 'online' && reason !== 'forfeit' && reason !== 'disconnected') {
+        // 상대의 최종 기록을 받은 뒤 결과를 확정한다 (못 받으면 마지막으로 받은 상태로 판정)
+        sendRoom('final', competitorPayload(versus.me));
+        if (online.rivalFinal) {
+          showVersusResult();
+        } else {
+          showVersusToast('⏳ 결과 집계 중...', ONLINE_FINAL_WAIT_MS);
+          online.finalTimer = setTimeout(() => showVersusResult(), ONLINE_FINAL_WAIT_MS);
+        }
+        return;
+      }
+      if (versus.mode === 'online' && reason === 'forfeit') sendRoom('final', competitorPayload(versus.me));
+      showVersusResult();
+    }
+
+    function showVersusResult() {
+      if (versus.phase !== 'settling') return;
+      versus.phase = 'finished';
+      clearTimeout(online.finalTimer);
+      document.getElementById('versus-toast').style.display = 'none';
+
+      const { me, rival } = versus;
+      const reason = versus.endReason;
+      let winner;
+      if (reason === 'forfeit') winner = 'me';
+      else if (reason === 'disconnected') winner = null;
+      else winner = decideWinner(me, rival);
+
+      const titleEl = document.getElementById('vs-result-title');
+      if (winner === 'me') {
+        titleEl.textContent = '🏆 승리!';
+        titleEl.style.color = '#16a34a';
+        sfx.playFanfare();
+      } else if (winner === 'rival') {
+        titleEl.textContent = '😵 패배';
+        titleEl.style.color = '#ef4444';
+      } else if (winner === 'draw') {
+        titleEl.textContent = '🤝 무승부';
+        titleEl.style.color = '#0f172a';
+      } else {
+        titleEl.textContent = '⚠️ 연결 끊김';
+        titleEl.style.color = '#b45309';
+      }
+
+      const reasonText = {
+        time: '⏱️ 시간 종료!',
+        'both-dead': '💥 둘 다 탈락!',
+        decided: me.dead ? '💥 탈락 — 상대가 이미 앞서 있습니다' : '🎯 상대 탈락 — 이미 앞서 있습니다',
+        forfeit: '🏳️ 상대가 대전을 떠나 부전승입니다',
+        disconnected: '서버 연결이 끊겨 이번 대전은 무효 처리되었습니다'
+      }[reason] || '';
+      const decidedByTieBreak = reason !== 'forfeit' && (winner === 'me' || winner === 'rival') && me.score === rival.score;
+      const tieNote = decidedByTieBreak ? ' (동점 — 먼저 도달한 쪽 승리)' : '';
+      document.getElementById('vs-result-reason').textContent = reasonText + tieNote;
+      document.getElementById('vs-result-me-name').textContent = `${me.name} (나)`;
+      document.getElementById('vs-result-me-score').textContent = `${me.score}점`;
+      document.getElementById('vs-result-rival-name').textContent = rival.name;
+      document.getElementById('vs-result-rival-score').textContent = `${rival.score}점`;
+
+      const rematchBtn = document.getElementById('vs-rematch-btn');
+      const statusEl = document.getElementById('vs-rematch-status');
+      if (versus.mode === 'bot') {
+        rematchBtn.disabled = false;
+        statusEl.textContent = `봇 난이도: ${(BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal).label}`;
+      } else {
+        const canRematch = !!online.channel && !!online.opponent && reason !== 'forfeit' && reason !== 'disconnected';
+        rematchBtn.disabled = !canRematch;
+        statusEl.textContent = canRematch ? '둘 다 [재대결]을 누르면 새 맵으로 시작합니다' : '상대와 연결되어 있지 않아 재대결할 수 없습니다';
+      }
+      document.getElementById('versus-result-modal').style.display = 'flex';
+    }
+
+    function exitVersus() {
+      const wasOnline = versus.mode === 'online';
+      versus.active = false;
+      versus.mode = null;
+      versus.phase = 'idle';
+      removeVersusRival();
+      clearTimeout(online.finalTimer);
+      document.body.classList.remove('versus-active');
+      document.getElementById('versus-countdown').style.display = 'none';
+      document.getElementById('versus-toast').style.display = 'none';
+      document.getElementById('versus-result-modal').style.display = 'none';
+      if (wasOnline) leaveRoom();
+      restartGame();
+    }
+
+    /* --------------------------------------------------------------------------
+       온라인 1:1 — Supabase Realtime (Broadcast + Presence, DB 테이블 없음)
+       - 방 코드로 채널을 열고, 방장이 시드를 정해 시작 신호를 보낸다.
+       - 각자 위치·점수를 초당 최대 ~6회 보내고, 상대는 고스트로 보간 표시한다.
+       -------------------------------------------------------------------------- */
+    const SUPABASE_URL = '';
+    const SUPABASE_PUBLISHABLE_KEY = '';
+    const SUPABASE_SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js';
+    const SUPABASE_SDK_INTEGRITY = 'sha384-WgXwGL6fUsYJWNaKJgVbrJKGRQwc1vieh2oy4kw9nXqpNDz3tdSsqEYUgeHD/NuF';
+    const VERSUS_PROTOCOL = 1;            // 맵 생성·메시지 형식이 바뀌면 올린다 (다른 버전끼리는 매칭 거부)
+    const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const ROOM_CODE_LENGTH = 6;
+    const ONLINE_STATE_MIN_INTERVAL_MS = 160;
+    const ONLINE_HEARTBEAT_MS = 1000;
+    const ONLINE_JOIN_TIMEOUT_MS = 8000;
+    const ONLINE_LEAVE_GRACE_MS = 5000;
+    const ONLINE_FINAL_WAIT_MS = 2500;
+    const ONLINE_MAX_SUBSTEP = 1 / 30;     // 레이스 시계를 따라잡을 때 한 번에 진행할 최대 시뮬레이션 시간
+    const MAP_SIGNATURE_RANGE = [0, 40];
+
+    const online = {
+      clientId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `c${Date.now()}${Math.random().toString(36).slice(2)}`,
+      channel: null,
+      code: '',
+      role: null,           // 'host' | 'guest'
+      joinedAt: 0,
+      opponent: null,       // { id, name, charId, role }
+      lastSentAt: 0,
+      lastSentKey: '',
+      leaveTimer: null,
+      joinTimer: null,
+      finalTimer: null,
+      disconnectedSince: 0,
+      rivalFinal: null,
+      wantRematch: false,
+      rivalWantsRematch: false
+    };
+
+    let supabaseClientPromise = null;
+
+    function isOnlineConfigured() {
+      return !!(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+    }
+
+    function loadSupabaseClient() {
+      if (!isOnlineConfigured()) {
+        return Promise.reject(new Error('온라인 대전 서버가 아직 설정되지 않았습니다.'));
+      }
+      if (!supabaseClientPromise) {
+        supabaseClientPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = SUPABASE_SDK_URL;
+          script.integrity = SUPABASE_SDK_INTEGRITY;
+          script.crossOrigin = 'anonymous';
+          script.onload = () => {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+              resolve(window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+                auth: { persistSession: false, autoRefreshToken: false }
+              }));
+            } else {
+              reject(new Error('온라인 대전 모듈을 초기화하지 못했습니다.'));
+            }
+          };
+          script.onerror = () => {
+            script.remove();
+            reject(new Error('온라인 대전 모듈을 불러오지 못했습니다. 네트워크를 확인해 주세요.'));
+          };
+          document.head.appendChild(script);
+        }).catch(err => {
+          supabaseClientPromise = null;
+          throw err;
+        });
+      }
+      return supabaseClientPromise;
+    }
+
+    function generateRoomCode() {
+      const bytes = new Uint32Array(ROOM_CODE_LENGTH);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, b => ROOM_CODE_ALPHABET[b % ROOM_CODE_ALPHABET.length]).join('');
+    }
+
+    function normalizeRoomCode(raw) {
+      const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== ROOM_CODE_LENGTH) return null;
+      if ([...code].some(ch => !ROOM_CODE_ALPHABET.includes(ch))) return null;
+      return code;
+    }
+
+    function setOnlineStatus(text, isError = false) {
+      const el = document.getElementById('vs-online-status');
+      el.textContent = text;
+      el.classList.toggle('error', isError);
+    }
+
+    function setOnlineLobbyBusy(busy) {
+      const disabled = busy || !isOnlineConfigured();
+      document.getElementById('vs-create-room').disabled = disabled;
+      document.getElementById('vs-join-room').disabled = disabled;
+      document.getElementById('vs-room-input').disabled = disabled;
+    }
+
+    function roomInviteLink(code) {
+      return `${location.origin}${location.pathname}?room=${code}`;
+    }
+
+    function competitorPayload(c) {
+      return { score: c.score, reachedAt: Math.round(c.reachedAt * 100) / 100, dead: c.dead, reason: c.deathReason || '' };
+    }
+
+    function sendRoom(type, data = {}) {
+      const channel = online.channel;
+      if (!channel || channel.state !== 'joined') return;
+      channel.send({ type: 'broadcast', event: 'msg', payload: { ...data, type, from: online.clientId } })
+        .catch(err => console.warn('[versus] 메시지 전송 실패', type, err));
+    }
+
+    async function leaveRoom() {
+      clearTimeout(online.leaveTimer);
+      clearTimeout(online.joinTimer);
+      clearTimeout(online.finalTimer);
+      const channel = online.channel;
+      online.channel = null;
+      online.code = '';
+      online.role = null;
+      online.opponent = null;
+      online.rivalFinal = null;
+      online.wantRematch = false;
+      online.rivalWantsRematch = false;
+      online.disconnectedSince = 0;
+      if (channel) {
+        try {
+          sendRoomOn(channel, 'bye');
+          const client = await supabaseClientPromise;
+          await client.removeChannel(channel);
+        } catch (err) {
+          console.warn('[versus] 방 나가기 처리 중 오류', err);
+        }
+      }
+    }
+
+    function sendRoomOn(channel, type) {
+      if (channel.state !== 'joined') return;
+      channel.send({ type: 'broadcast', event: 'msg', payload: { type, from: online.clientId } }).catch(() => {});
+    }
+
+    async function connectRoom(code, role) {
+      await leaveRoom();
+      const client = await loadSupabaseClient();
+      online.code = code;
+      online.role = role;
+      online.joinedAt = Date.now();
+
+      const channel = client.channel(`crossy-versus:${code}`, {
+        config: { broadcast: { self: false, ack: false }, presence: { key: online.clientId } }
+      });
+      online.channel = channel;
+      channel.on('presence', { event: 'sync' }, () => {
+        if (channel === online.channel) handlePresenceSync(channel);
+      });
+      channel.on('broadcast', { event: 'msg' }, ({ payload }) => {
+        if (channel === online.channel && payload && typeof payload === 'object') handleRoomMessage(payload);
+      });
+
+      await new Promise((resolve, reject) => {
+        let settled = false;
+        channel.subscribe(async status => {
+          if (channel !== online.channel) return;
+          if (status === 'SUBSCRIBED') {
+            online.disconnectedSince = 0;
+            if (settled) return;
+            settled = true;
+            try {
+              await channel.track({
+                id: online.clientId,
+                name: getPlayerName(),
+                charId: selectedCharId,
+                role,
+                joinedAt: online.joinedAt,
+                protocol: VERSUS_PROTOCOL
+              });
+              resolve();
+            } catch (err) {
+              reject(new Error('방에 참가하지 못했습니다.'));
+            }
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            if (!settled) {
+              settled = true;
+              reject(new Error('대전 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
+            } else if (!online.disconnectedSince) {
+              online.disconnectedSince = performance.now();
+              if (versus.active && versus.phase === 'running') showVersusToast('📡 연결이 불안정합니다. 재연결 중...');
+            }
+          }
+        });
+      });
+    }
+
+    function failOnline(message) {
+      leaveRoom();
+      if (versus.active && versus.mode === 'online') exitVersus();
+      openVersusModal('online');
+      setOnlineStatus(message, true);
+      setOnlineLobbyBusy(false);
+      document.getElementById('vs-room-box').style.display = 'none';
+    }
+
+    function handlePresenceSync(channel) {
+      const state = channel.presenceState();
+      const members = Object.values(state)
+        .map(list => list && list[0])
+        .filter(m => m && typeof m.id === 'string')
+        .sort((a, b) => (a.joinedAt - b.joinedAt) || (a.id < b.id ? -1 : 1));
+      if (!members.some(m => m.id === online.clientId)) return; // 아직 내 presence가 반영되지 않음
+
+      // 방장은 가장 먼저 들어온 게스트만, 게스트는 방장만 상대로 인정한다 (presence가 하나씩 도착해도 안전)
+      const hosts = members.filter(m => m.role === 'host');
+      const guests = members.filter(m => m.role === 'guest');
+      let opp;
+      if (online.role === 'host') {
+        if (hosts[0] && hosts[0].id !== online.clientId) {
+          failOnline('같은 코드의 방이 이미 있습니다. 새 방을 만들어 주세요.');
+          return;
+        }
+        opp = guests[0] || null;
+      } else {
+        if (guests.findIndex(m => m.id === online.clientId) > 0) {
+          failOnline('방이 가득 찼습니다. 다른 방 코드를 확인해 주세요.');
+          return;
+        }
+        opp = hosts[0] || null;
+      }
+      if (opp && opp.protocol !== VERSUS_PROTOCOL) {
+        failOnline('상대와 게임 버전이 다릅니다. 두 기기 모두 새로고침 후 다시 시도해 주세요.');
+        return;
+      }
+
+      if (opp) {
+        clearTimeout(online.leaveTimer);
+        clearTimeout(online.joinTimer);
+        const isNew = !online.opponent || online.opponent.id !== opp.id;
+        online.opponent = {
+          id: opp.id,
+          name: sanitizeNickname(opp.name),
+          charId: isValidCharId(opp.charId) ? opp.charId : 'chicken',
+          role: opp.role
+        };
+        if (isNew) onOpponentJoined();
+        else if (versus.active && versus.phase === 'running') showVersusToast('🔌 상대가 다시 연결되었습니다');
+      } else if (online.opponent) {
+        onOpponentMissing();
+      }
+    }
+
+    function onOpponentJoined() {
+      const opp = online.opponent;
+      if (versus.active) return;
+      setOnlineStatus(`🎮 ${opp.name} 님과 연결되었습니다! 곧 시작합니다...`);
+      if (online.role === 'host') hostStartMatch();
+    }
+
+    function onOpponentMissing() {
+      if (versus.active && versus.phase === 'running') {
+        showVersusToast('📡 상대 연결이 끊겼습니다. 5초 안에 돌아오지 않으면 부전승!', ONLINE_LEAVE_GRACE_MS);
+        clearTimeout(online.leaveTimer);
+        online.leaveTimer = setTimeout(() => {
+          if (versus.active && versus.phase === 'running' && !opponentPresent()) {
+            online.opponent = null;
+            finishVersus('forfeit');
+          }
+        }, ONLINE_LEAVE_GRACE_MS);
+        return;
+      }
+      online.opponent = null;
+      if (versus.active && versus.phase === 'finished') {
+        document.getElementById('vs-rematch-btn').disabled = true;
+        document.getElementById('vs-rematch-status').textContent = '상대가 방을 나갔습니다';
+      } else if (versus.active && versus.phase === 'countdown') {
+        failOnline('상대가 시작 전에 방을 나갔습니다.');
+      } else if (!versus.active && online.role === 'host') {
+        setOnlineStatus('상대가 나갔습니다. 다른 친구를 기다리는 중...');
+      }
+    }
+
+    function opponentPresent() {
+      if (!online.channel || !online.opponent) return false;
+      return Object.values(online.channel.presenceState())
+        .some(list => list && list[0] && list[0].id === online.opponent.id);
+    }
+
+    function hostStartMatch() {
+      const opp = online.opponent;
+      if (!opp) return;
+      const seed = newSeed();
+      const countdownMs = VERSUS_COUNTDOWN_MS + 500;
+      online.rivalFinal = null;
+      online.wantRematch = false;
+      online.rivalWantsRematch = false;
+      startVersusMatch({ mode: 'online', seed, rivalName: opp.name, rivalCharId: opp.charId, countdownMs });
+      sendRoom('start', {
+        seed,
+        countdownMs,
+        sig: laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]),
+        name: getPlayerName(),
+        charId: selectedCharId
+      });
+    }
+
+    function handleRoomMessage(msg) {
+      const fromOpponent = online.opponent && msg.from === online.opponent.id;
+
+      if (msg.type === 'start') {
+        if (online.role !== 'guest') return;
+        if (online.opponent && !fromOpponent) return;
+        const seed = Number(msg.seed);
+        const countdownMs = Math.min(Math.max(Number(msg.countdownMs) || VERSUS_COUNTDOWN_MS, 1000), 6000);
+        if (!Number.isFinite(seed)) return;
+        online.rivalFinal = null;
+        online.wantRematch = false;
+        online.rivalWantsRematch = false;
+        const rivalName = online.opponent ? online.opponent.name : msg.name;
+        const rivalChar = online.opponent ? online.opponent.charId : msg.charId;
+        startVersusMatch({ mode: 'online', seed, rivalName, rivalCharId: rivalChar, countdownMs });
+        if (laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]) !== msg.sig) {
+          sendRoom('abort', { reason: 'map' });
+          failOnline('맵 동기화에 실패했습니다. 두 기기 모두 새로고침 후 다시 시도해 주세요.');
+        }
+        return;
+      }
+
+      if (!fromOpponent) return;
+
+      if (msg.type === 'state' || msg.type === 'final') {
+        if (!versus.active || versus.mode !== 'online' || !versus.rival) return;
+        applyRivalState(msg);
+        if (msg.type === 'final') {
+          online.rivalFinal = msg;
+          if (versus.phase === 'settling') showVersusResult();
+        }
+      } else if (msg.type === 'rematch') {
+        online.rivalWantsRematch = true;
+        if (versus.phase === 'finished') {
+          document.getElementById('vs-rematch-status').textContent = online.wantRematch
+            ? '곧 새 판을 시작합니다...'
+            : `🔁 ${online.opponent.name} 님이 재대결을 원합니다!`;
+        }
+        if (online.role === 'host' && online.wantRematch) hostStartMatch();
+      } else if (msg.type === 'bye') {
+        if (versus.active && (versus.phase === 'running' || versus.phase === 'countdown')) {
+          if (versus.phase === 'countdown') {
+            failOnline('상대가 시작 전에 방을 나갔습니다.');
+            return;
+          }
+          online.opponent = null;
+          finishVersus('forfeit');
+        } else if (versus.active && versus.phase === 'finished') {
+          online.opponent = null;
+          document.getElementById('vs-rematch-btn').disabled = true;
+          document.getElementById('vs-rematch-status').textContent = '상대가 방을 나갔습니다';
+        }
+      } else if (msg.type === 'abort') {
+        failOnline('맵 동기화에 실패했습니다. 두 기기 모두 새로고침 후 다시 시도해 주세요.');
+      }
+    }
+
+    function applyRivalState(msg) {
+      const rival = versus.rival;
+      const score = Math.floor(Number(msg.score));
+      if (Number.isFinite(score) && score >= rival.score && score < 100000) {
+        if (score > rival.score) rival.reachedAt = Math.max(0, Number(msg.reachedAt) || 0);
+        rival.score = score;
+      }
+      if (versus.ghost && Number.isFinite(Number(msg.lane))) {
+        const t = versus.ghost.target;
+        t.lane = Math.round(Number(msg.lane));
+        t.col = Math.round(Number(msg.col)) || 0;
+        t.x = Number.isFinite(Number(msg.x)) ? Number(msg.x) : t.col * CELL_SIZE;
+        t.onLog = !!msg.onLog;
+      }
+      if (msg.dead && !rival.dead) {
+        onVersusRivalDeath(typeof msg.reason === 'string' ? msg.reason.slice(0, 40) : '');
+      }
+    }
+
+    function sendVersusState(force = false) {
+      if (!versus.active || versus.mode !== 'online' || !versus.me) return;
+      const now = performance.now();
+      const msg = {
+        lane: player.laneIndex,
+        col: player.col,
+        x: Math.round(player.mesh.position.x * 10) / 10,
+        onLog: !!(player.onPlatform && player.onPlatform.type === 'log'),
+        ...competitorPayload(versus.me)
+      };
+      const key = `${msg.lane}|${msg.col}|${msg.x}|${msg.dead}|${msg.score}`;
+      const changed = key !== online.lastSentKey;
+      if (!force) {
+        if (now - online.lastSentAt < ONLINE_STATE_MIN_INTERVAL_MS) return;
+        if (!changed && now - online.lastSentAt < ONLINE_HEARTBEAT_MS) return;
+      }
+      online.lastSentAt = now;
+      online.lastSentKey = key;
+      sendRoom('state', msg);
+    }
+
+    function onlineTick(now) {
+      if (versus.phase === 'running' || versus.phase === 'settling') sendVersusState();
+
+      // 내 쪽 연결이 오래 끊기면 이번 판은 무효 처리 (양쪽이 서로 부전승을 주장하지 않도록)
+      if (versus.phase === 'running' && online.channel) {
+        if (online.channel.state === 'joined') {
+          online.disconnectedSince = 0;
+        } else {
+          if (!online.disconnectedSince) online.disconnectedSince = now;
+          if (now - online.disconnectedSince > ONLINE_LEAVE_GRACE_MS) finishVersus('disconnected');
+        }
+      }
+    }
+
+    async function createOnlineRoom() {
+      saveNicknameFromLobby();
+      setOnlineLobbyBusy(true);
+      setOnlineStatus('방을 만드는 중...');
+      const code = generateRoomCode();
+      try {
+        await connectRoom(code, 'host');
+        document.getElementById('vs-room-code').textContent = code;
+        document.getElementById('vs-room-box').style.display = 'block';
+        setOnlineStatus('⏳ 친구를 기다리는 중... (이 창을 열어 두세요)');
+      } catch (err) {
+        await leaveRoom();
+        setOnlineLobbyBusy(false);
+        setOnlineStatus(err.message, true);
+      }
+    }
+
+    async function joinOnlineRoom() {
+      const code = normalizeRoomCode(document.getElementById('vs-room-input').value);
+      if (!code) {
+        setOnlineStatus(`방 코드는 ${ROOM_CODE_LENGTH}자리 영문·숫자입니다.`, true);
+        return;
+      }
+      saveNicknameFromLobby();
+      setOnlineLobbyBusy(true);
+      document.getElementById('vs-room-box').style.display = 'none';
+      setOnlineStatus('방에 입장하는 중...');
+      try {
+        await connectRoom(code, 'guest');
+        setOnlineStatus('방장을 찾는 중...');
+        clearTimeout(online.joinTimer);
+        online.joinTimer = setTimeout(() => {
+          if (online.code === code && !online.opponent && !versus.active) {
+            failOnline('방을 찾을 수 없습니다. 코드를 확인하거나 친구에게 방을 다시 만들어 달라고 해 주세요.');
+          }
+        }, ONLINE_JOIN_TIMEOUT_MS);
+      } catch (err) {
+        await leaveRoom();
+        setOnlineLobbyBusy(false);
+        setOnlineStatus(err.message, true);
+      }
+    }
+
+    function saveNicknameFromLobby() {
+      const nick = sanitizeNickname(document.getElementById('vs-nickname').value);
+      document.getElementById('vs-nickname').value = nick;
+      localStorage.setItem('crossy_player_name', nick);
+    }
+
+    async function copyInviteLink() {
+      const link = roomInviteLink(online.code);
+      try {
+        await navigator.clipboard.writeText(link);
+        setOnlineStatus('🔗 초대 링크를 복사했습니다! 친구에게 보내 주세요.');
+      } catch (err) {
+        setOnlineStatus(`복사하지 못했습니다. 코드 ${online.code} 를 직접 알려 주세요.`, true);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       대전 로비 UI
+       -------------------------------------------------------------------------- */
+    const versusModal = document.getElementById('versus-modal');
+
+    function setVersusTab(tab) {
+      document.getElementById('vs-tab-bot').classList.toggle('active', tab === 'bot');
+      document.getElementById('vs-tab-online').classList.toggle('active', tab === 'online');
+      document.getElementById('vs-panel-bot').style.display = tab === 'bot' ? 'block' : 'none';
+      document.getElementById('vs-panel-online').style.display = tab === 'online' ? 'block' : 'none';
+    }
+
+    function openVersusModal(tab = 'bot') {
+      closeOverlaysForMatch();
+      setVersusTab(tab);
+      document.getElementById('vs-nickname').value = getPlayerName();
+      if (!online.channel) {
+        setOnlineLobbyBusy(false);
+        document.getElementById('vs-room-box').style.display = 'none';
+        setOnlineStatus(isOnlineConfigured() ? '' : '🚧 온라인 대전은 준비 중입니다. 지금은 봇 대전을 즐겨 주세요!', !isOnlineConfigured());
+      }
+      versusModal.style.display = 'flex';
+    }
+
+    function closeVersusModal() {
+      versusModal.style.display = 'none';
+      if (online.channel && !versus.active) leaveRoom();
+      clock.getDelta();
+    }
+
+    document.getElementById('versus-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      sfx.init();
+      openVersusModal('bot');
+    });
+    document.getElementById('mobile-item-versus').addEventListener('click', e => {
+      e.stopPropagation();
+      sfx.init();
+      openVersusModal('bot');
+    });
+    document.getElementById('vs-tab-bot').addEventListener('click', () => setVersusTab('bot'));
+    document.getElementById('vs-tab-online').addEventListener('click', () => setVersusTab('online'));
+    document.getElementById('vs-close-btn').addEventListener('click', closeVersusModal);
+
+    document.querySelectorAll('.vs-diff-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        versus.difficulty = btn.dataset.diff;
+        document.querySelectorAll('.vs-diff-btn').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    document.getElementById('vs-bot-start').addEventListener('click', () => {
+      const cfg = BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal;
+      const rivalChar = selectedCharId === 'robot' ? 'chicken' : 'robot';
+      startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: `봇(${cfg.label})`, rivalCharId: rivalChar });
+    });
+
+    document.getElementById('vs-create-room').addEventListener('click', createOnlineRoom);
+    document.getElementById('vs-join-room').addEventListener('click', joinOnlineRoom);
+    document.getElementById('vs-room-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') joinOnlineRoom();
+    });
+    document.getElementById('vs-copy-link').addEventListener('click', copyInviteLink);
+
+    document.getElementById('vs-quit-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      if (versus.phase === 'running' || versus.phase === 'countdown') {
+        if (!confirm('대전을 나가시겠습니까? (기권 처리됩니다)')) return;
+      }
+      exitVersus();
+    });
+
+    document.getElementById('vs-rematch-btn').addEventListener('click', () => {
+      if (versus.mode === 'bot') {
+        startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: versus.rival.name, rivalCharId: versus.rival.charId });
+        return;
+      }
+      if (!online.opponent) return;
+      online.wantRematch = true;
+      document.getElementById('vs-rematch-btn').disabled = true;
+      sendRoom('rematch');
+      if (online.role === 'host' && online.rivalWantsRematch) {
+        hostStartMatch();
+      } else {
+        document.getElementById('vs-rematch-status').textContent = online.rivalWantsRematch
+          ? '곧 새 판을 시작합니다...'
+          : '상대의 응답을 기다리는 중...';
+      }
+    });
+
+    document.getElementById('vs-exit-btn').addEventListener('click', exitVersus);
+
+    // 초대 링크(?room=CODE)로 들어오면 온라인 탭을 열고 코드를 채워 둔다
+    (function handleInviteLink() {
+      const code = normalizeRoomCode(new URLSearchParams(location.search).get('room'));
+      if (!code) return;
+      openVersusModal('online');
+      document.getElementById('vs-room-input').value = code;
+      if (isOnlineConfigured()) setOnlineStatus('초대받은 방입니다. 닉네임을 확인하고 [입장]을 눌러 주세요.');
+    })();
+
+    window.addEventListener('pagehide', () => {
+      if (online.channel) sendRoomOn(online.channel, 'bye');
+    });
+
+    /* ==========================================================================
        13. 메인 렌더 루프
        ========================================================================== */
     const autoPlayAgent = new AutoPlayAgent();
@@ -3425,34 +4929,42 @@
       const rm = document.getElementById('ranking-modal');
       const gom = document.getElementById('game-over-modal');
       const mdm = document.getElementById('mobile-dropdown-menu');
+      const vm = document.getElementById('versus-modal');
+      const vrm = document.getElementById('versus-result-modal');
       const isChar = cm && cm.style.display === 'flex';
       const isRank = rm && rm.style.display === 'flex';
       const isGameOver = gom && gom.style.display === 'flex';
-      const isMenuOpen = mdm && mdm.classList.contains('open');
-      return isChar || isRank || isGameOver || isMenuOpen;
+      // 대전 중에는 메뉴를 열어도 판이 멈추지 않는다 (상대는 계속 달린다)
+      const isMenuOpen = !versus.active && mdm && mdm.classList.contains('open');
+      const isVersusLobby = vm && vm.style.display === 'flex';
+      const isVersusResult = vrm && vrm.style.display === 'flex';
+      return isChar || isRank || isGameOver || isMenuOpen || isVersusLobby || isVersusResult;
     }
 
-    function animate() {
-      requestAnimationFrame(animate);
-      const rawDelta = clock.getDelta();
+    // 대전 카운트다운·결과 집계 중에는 월드를 멈춘다
+    function isVersusFrozen() {
+      return versus.active && versus.phase !== 'running';
+    }
 
-      // 모달 창이 열려 있을 때 게임 물리 및 이동 완전 동결 (Pause)
-      if (isAnyModalActive()) {
-        renderer.render(scene, camera);
-        return;
-      }
-
-      const delta = Math.min(rawDelta, 0.1);
-
+    function stepWorld(delta) {
       autoPlayAgent.update(delta);
       particleSys.update(delta);
       player.update(delta);
-      laneManager.update(delta, player.mesh.position.z);
-      checkCollisions();
+      if (versus.active) versusStep(delta);
+
+      const laneRange = getActiveLaneRange();
+      laneManager.update(delta, laneRange.min, laneRange.max);
+      checkCollisions(player);
+      if (versus.bot) checkCollisions(versus.bot.player);
 
       if (player.laneIndex > maxLaneReached) {
         maxLaneReached = player.laneIndex;
         score = maxLaneReached;
+        // 도착한 레인에서 바로 죽어도 그 레인은 인정한다 (싱글 플레이 점수·봇 점수와 같은 기준)
+        if (versus.active && versus.me) {
+          versus.me.score = score;
+          versus.me.reachedAt = versus.elapsed;
+        }
         document.getElementById('score-display').innerText = score;
         updateBiome(player.laneIndex);
         if (score > 0) {
@@ -3465,10 +4977,17 @@
         }
       }
 
-      if (!isGameOver) {
+      // 대전 중에는 내가 탈락해도 봇의 독수리 기준선(cameraMinZ)이 계속 전진한다
+      if (!isGameOver || versus.active) {
         cameraMinZ += BASE_CAMERA_SPEED * delta;
+      }
+      const spectateMesh = getSpectateMesh();
+      if (!isGameOver) {
         const targetZ = Math.max(cameraMinZ, player.mesh.position.z + 10);
         cameraZ += (targetZ - cameraZ) * 0.08;
+      } else if (spectateMesh) {
+        cameraZ += (spectateMesh.position.z + 10 - cameraZ) * 0.08;
+        updateBiome(Math.round(spectateMesh.position.z / CELL_SIZE));
       }
 
       if (eagleActive && eagle) {
@@ -3482,7 +5001,7 @@
         }
 
         if (Math.abs(eagle.position.z - player.mesh.position.z) < 22) {
-          triggerGameOver('독수리에게 낚아채였습니다!');
+          player.die('독수리에게 낚아채였습니다!');
           player.mesh.position.copy(eagle.position);
           player.mesh.position.y -= 7;
           particleSys.create(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z, 0xFFFFFF, 8, 30);
@@ -3494,9 +5013,38 @@
           eagle = null;
         }
       }
+    }
 
+    function animate() {
+      requestAnimationFrame(animate);
+      const rawDelta = clock.getDelta();
+
+      versusFrame(performance.now());
+
+      // 모달 창이 열려 있을 때 게임 물리 및 이동 완전 동결 (Pause)
+      if (isAnyModalActive() || isVersusFrozen()) {
+        renderer.render(scene, camera);
+        return;
+      }
+
+      const delta = Math.min(rawDelta, 0.1);
+      if (versus.active && versus.mode === 'online' && versus.phase === 'running') {
+        // 온라인: 장애물 시간이 레이스 시계(벽시계)와 같아야 "같은 시각 = 같은 맵"이 유지된다.
+        // 프레임 지연·백그라운드 복귀로 뒤처진 만큼 작은 스텝으로 나눠 따라잡는다.
+        let lag = versus.elapsed - laneManager.time;
+        while (lag > 1e-6) {
+          const step = Math.min(lag, ONLINE_MAX_SUBSTEP);
+          stepWorld(step);
+          lag -= step;
+        }
+        settleVersusIfOver();
+      } else {
+        stepWorld(delta);
+      }
+
+      const focusMesh = getSpectateMesh() || player.mesh;
       const desiredLookAt = new THREE.Vector3(
-        player.mesh.position.x * 0.45,
+        focusMesh.position.x * 0.45,
         0,
         cameraZ + 40
       );
