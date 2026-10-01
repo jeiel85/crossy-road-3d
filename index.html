@@ -4086,8 +4086,16 @@
         min = Math.min(min, versus.bot.player.laneIndex);
         max = Math.max(max, versus.bot.player.laneIndex);
       }
-      if (versus.ghost) max = Math.max(max, versus.ghost.target.lane);
-      return { min, max: Math.min(max, min + VERSUS_MAX_LANE_SPREAD) };
+      // 온라인 상대가 뒤처져 있어도 그 레인을 지우지 않는다 (내가 탈락하면 상대를 관전하므로)
+      if (versus.ghost && versus.rival && !versus.rival.dead) {
+        min = Math.min(min, versus.ghost.target.lane);
+        max = Math.max(max, versus.ghost.target.lane);
+      }
+      // 상대가 아주 멀리 있어도 화면 주인공 주변 레인은 항상 확보한다
+      return {
+        min: Math.max(min, focusLane - VERSUS_MAX_LANE_SPREAD),
+        max: Math.min(max, focusLane + VERSUS_MAX_LANE_SPREAD)
+      };
     }
 
     // 월드 시뮬레이션 한 스텝 중 대전 상대 몫 (레인 갱신 전에 호출)
@@ -4329,6 +4337,7 @@
     const ONLINE_JOIN_TIMEOUT_MS = 8000;
     const ONLINE_LEAVE_GRACE_MS = 5000;
     const ONLINE_FINAL_WAIT_MS = 2500;
+    const ONLINE_MAX_SUBSTEP = 1 / 30;     // 레이스 시계를 따라잡을 때 한 번에 진행할 최대 시뮬레이션 시간
     const MAP_SIGNATURE_RANGE = [0, 40];
 
     const online = {
@@ -5014,7 +5023,18 @@
       }
 
       const delta = Math.min(rawDelta, 0.1);
-      stepWorld(delta);
+      if (versus.active && versus.mode === 'online' && versus.phase === 'running') {
+        // 온라인: 장애물 시간이 레이스 시계(벽시계)와 같아야 "같은 시각 = 같은 맵"이 유지된다.
+        // 프레임 지연·백그라운드 복귀로 뒤처진 만큼 작은 스텝으로 나눠 따라잡는다.
+        let lag = versus.elapsed - laneManager.time;
+        while (lag > 1e-6) {
+          const step = Math.min(lag, ONLINE_MAX_SUBSTEP);
+          stepWorld(step);
+          lag -= step;
+        }
+      } else {
+        stepWorld(delta);
+      }
 
       const focusMesh = getSpectateMesh() || player.mesh;
       const desiredLookAt = new THREE.Vector3(
