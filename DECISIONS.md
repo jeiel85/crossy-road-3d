@@ -37,7 +37,7 @@ Supabase Realtime의 Broadcast(메시지)와 Presence(입장·이탈 감지)를 
 - Presence 메타: `{ id, name, charId, role: 'host'|'guest', joinedAt, protocol }`. 방장은 가장 먼저 들어온 게스트만, 게스트는 방장만 상대로 인정합니다. 두 번째 이후 게스트는 "방이 가득 참"으로 거부합니다.
 - `start` (방장 → 게스트): `{ seed, countdownMs, sig, name, charId }`
 - `state` (양방향, 변화가 있을 때 최소 160ms 간격 + 1초 하트비트): `{ lane, col, x, onLog, score, reachedAt, dead, reason }`
-- `final` (판 종료 시): `{ score, reachedAt, dead, reason, endReason }`. 상대의 final을 최대 2.5초 기다린 뒤 결과를 확정합니다. 상대가 `endReason: forfeit`(나를 부전패 처리)을 보내면 나는 부전패로, `disconnected`(스스로 부전패)를 보내면 나는 부전승으로 맞춥니다.
+- `final` (판 종료 시): `{ score, reachedAt, dead, reason, endReason }`. 상대의 final을 최대 2.5초 기다린 뒤 결과를 확정합니다. 상대가 `endReason: forfeit`(나를 부전패 처리)을 보내면 나는 부전패로, `disconnected`(스스로 부전패)를 보내면 나는 부전승으로 맞춥니다. 단, 양쪽이 같은 종류의 주장을 동시에 했다면(둘 다 스스로 부전패, 또는 둘 다 상대 이탈로 부전승) 어느 쪽도 이기지 않도록 **무효**로 처리합니다. 양쪽이 같은 규칙으로 판단하므로 메시지 도착 순서와 무관하게 결과가 일치합니다.
 - `rematch`, `bye`, `abort`(맵 지문 불일치)
 - 상대 presence가 경기 중 5초 이상 사라지면 부전승입니다. 내 채널이 5초 이상 끊기거나, 탭 전환 등으로 화면이 5초 넘게 멈췄다 돌아오면 부전패입니다. 처음에는 "무효"로 처리했지만, 그러면 상대 화면의 부전승과 결과가 엇갈려 부전패로 바꿨습니다. 5초를 넘긴 정지는 따라잡기 시뮬레이션도 하지 않습니다(최악의 경우 한 프레임에 수천 스텝이 도는 것을 방지).
 

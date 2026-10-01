@@ -4272,11 +4272,16 @@
         finishVersus(myReason);
         return;
       }
-      if ((versus.phase === 'settling' || versus.phase === 'finished') && versus.endReason !== myReason) {
-        versus.endReason = myReason;
-        versus.phase = 'settling';
-        showVersusResult();
-      }
+      if (versus.phase !== 'settling' && versus.phase !== 'finished') return;
+      // 양쪽이 같은 종류의 주장을 동시에 했다면(둘 다 스스로 부전패 / 둘 다 상대 이탈로 부전승) 어느 쪽도 이기지 않도록 무효.
+      // 각 클라이언트가 같은 규칙으로 판단하므로 메시지 도착 순서와 무관하게 양쪽 결과가 일치한다.
+      const mine = versus.endReason;
+      const clash = (mine === 'disconnected' && myReason === 'forfeit') || (mine === 'forfeit' && myReason === 'disconnected');
+      const next = (clash || mine === 'void') ? 'void' : myReason;
+      if (next === mine) return;
+      versus.endReason = next;
+      versus.phase = 'settling';
+      showVersusResult();
     }
 
     function showVersusResult() {
@@ -4290,6 +4295,7 @@
       let winner;
       if (reason === 'forfeit') winner = 'me';
       else if (reason === 'disconnected') winner = 'rival';
+      else if (reason === 'void') winner = null;
       else winner = decideWinner(me, rival);
 
       const titleEl = document.getElementById('vs-result-title');
@@ -4300,9 +4306,12 @@
       } else if (winner === 'rival') {
         titleEl.textContent = reason === 'disconnected' ? '📡 부전패' : '😵 패배';
         titleEl.style.color = '#ef4444';
-      } else {
+      } else if (winner === 'draw') {
         titleEl.textContent = '🤝 무승부';
         titleEl.style.color = '#0f172a';
+      } else {
+        titleEl.textContent = '⚠️ 무효';
+        titleEl.style.color = '#b45309';
       }
 
       const reasonText = {
@@ -4310,9 +4319,10 @@
         'both-dead': '💥 둘 다 탈락!',
         decided: me.dead ? '💥 탈락 — 상대가 이미 앞서 있습니다' : '🎯 상대 탈락 — 이미 앞서 있습니다',
         forfeit: '🏳️ 상대가 나갔거나 연결이 끊겨 부전승입니다',
-        disconnected: '연결이 끊기거나 게임 화면을 5초 넘게 벗어나 부전패로 처리되었습니다'
+        disconnected: '연결이 끊기거나 게임 화면을 5초 넘게 벗어나 부전패로 처리되었습니다',
+        void: '양쪽 모두 연결이 끊긴 것으로 판단되어 이번 판은 무효 처리되었습니다'
       }[reason] || '';
-      const decidedByTieBreak = reason !== 'forfeit' && reason !== 'disconnected' &&
+      const decidedByTieBreak = reason !== 'forfeit' && reason !== 'disconnected' && reason !== 'void' &&
         (winner === 'me' || winner === 'rival') && me.score === rival.score;
       const tieNote = decidedByTieBreak ? ' (동점 — 먼저 도달한 쪽 승리)' : '';
       document.getElementById('vs-result-reason').textContent = reasonText + tieNote;
@@ -4328,7 +4338,7 @@
         rematchBtn.disabled = false;
         statusEl.textContent = '난이도를 바꿔 바로 재대결할 수 있습니다';
       } else {
-        const canRematch = !!online.channel && !!online.opponent && reason !== 'forfeit' && reason !== 'disconnected';
+        const canRematch = !!online.channel && !!online.opponent && !['forfeit', 'disconnected', 'void'].includes(reason);
         rematchBtn.disabled = !canRematch;
         statusEl.textContent = canRematch ? '둘 다 [재대결]을 누르면 새 맵으로 시작합니다' : '상대와 연결되어 있지 않아 재대결할 수 없습니다';
       }
