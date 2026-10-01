@@ -1178,6 +1178,14 @@
           <strong id="vs-result-rival-score" style="color:#ef4444;">0</strong>
         </div>
       </div>
+      <div id="vs-result-diff" style="display:none; text-align:left;">
+        <div class="vs-field-label" style="margin-top:0;">다음 판 봇 난이도</div>
+        <div class="vs-diff-row">
+          <button class="vs-diff-btn" data-diff="easy">😊 쉬움</button>
+          <button class="vs-diff-btn" data-diff="normal">🙂 보통</button>
+          <button class="vs-diff-btn" data-diff="hard">😈 어려움</button>
+        </div>
+      </div>
       <div style="display:flex; gap:8px;">
         <button id="vs-rematch-btn" class="btn-primary" style="flex:1.6;">재대결</button>
         <button id="vs-exit-btn" class="btn-action" style="flex:1; justify-content:center;">나가기</button>
@@ -2247,37 +2255,93 @@
     /* ==========================================================================
        8. 레인 매니저
        ========================================================================== */
-    class LaneManager {
-      constructor() {
-        this.lanes = [];
-        this.nextLaneIndex = LANE_START_OFFSET;
-        this.lastType = 'grass';
-        this.consecutive = 0;
-        this.seed = newSeed();
-        this.time = 0; // 판 시작 후 경과한 시뮬레이션 시간(초). 모든 이동 장애물의 위치가 이 값의 함수다.
+    /* --------------------------------------------------------------------------
+       레인 계획: 시드만으로 정해지는 순수 데이터 (3D 메시 없음)
+       - LaneManager는 이 계획대로 레인을 만들고, 대전 맵 지문은 메시를 만들지 않고 계획만 해시한다.
+       -------------------------------------------------------------------------- */
+    const SAFE_START_LANES = 9; // LANE_START_OFFSET부터 장애물 없이 시작하는 잔디 레인 수
+
+    function planLane(seed, index, type, canHaveObstacles) {
+      const rand = laneRng(seed, index, 2);
+      const biome = getBiomeForLane(index);
+      const width = LANE_WIDTH;
+      const plan = {
+        index,
+        type,
+        biome,
+        direction: rand() < 0.5 ? 1 : -1,
+        speed: 0,
+        treeCols: [],
+        vehicleType: null,
+        vehicleXs: [],
+        logLen: 0,
+        logXs: [],
+        lilyX: null,
+        firstTrainAt: null,
+        coinCol: null
+      };
+
+      if (type === 'grass') {
+        if (canHaveObstacles) {
+          const safeCol = Math.floor((rand() - 0.5) * (GRID_COLS - 6));
+          for (let c = -Math.floor(GRID_COLS / 2); c <= Math.floor(GRID_COLS / 2); c++) {
+            if (Math.abs(c - safeCol) <= 1) continue;
+            if (rand() < 0.28) plan.treeCols.push(c);
+          }
+        }
+      } else if (type === 'road') {
+        let vehicleType = 'car';
+        const vehicleRoll = rand();
+        if (vehicleRoll < 0.28) vehicleType = 'truck';
+        else if (vehicleRoll < 0.42 && biome.id === 'city') vehicleType = 'police';
+        else if (vehicleRoll < 0.55) vehicleType = 'supercar';
+        plan.vehicleType = vehicleType;
+
+        const speedMult = vehicleType === 'supercar' ? 1.6 : (vehicleType === 'police' ? 1.4 : 1.0);
+        plan.speed = (55 + rand() * 65) * speedMult * plan.direction;
+
+        const count = vehicleType === 'truck' ? 2 : (vehicleType === 'supercar' ? 2 : (2 + Math.floor(rand() * 2)));
+        const spacing = width / count;
+        for (let i = 0; i < count; i++) {
+          plan.vehicleXs.push(-width / 2 + i * spacing + (rand() * 40 - 20));
+        }
+      } else if (type === 'river') {
+        plan.speed = (36 + rand() * 48) * plan.direction;
+        plan.logLen = rand() < 0.45 ? 58 : 80;
+        const count = 3;
+        const spacing = width / count;
+        for (let i = 0; i < count; i++) {
+          plan.logXs.push(-width / 2 + i * spacing + (rand() * 35));
+        }
+        if (rand() < 0.32) plan.lilyX = (Math.floor(rand() * 11) - 5) * CELL_SIZE;
+      } else if (type === 'rail') {
+        // 열차 운행표는 별도 스트림(salt 3): 첫 열차 시각을 여기서, 이후 간격은 LaneManager가 같은 스트림에서 뽑는다
+        plan.firstTrainAt = 3.5 + laneRng(seed, index, 3)() * 5;
       }
 
-      init(seed = newSeed()) {
-        this.lanes.forEach(l => {
-          scene.remove(l.mesh);
-          disposeHierarchy(l.mesh);
-        });
-        this.lanes = [];
+      if (canHaveObstacles && rand() < 0.16) {
+        plan.coinCol = Math.floor((rand() - 0.5) * (GRID_COLS - 4));
+      }
+      return plan;
+    }
+
+    // 레인 종류 순서(직전 종류·연속 횟수 상태 포함)를 시드에서 차례로 만들어 낸다
+    class LaneSequence {
+      constructor(seed) {
         this.seed = seed >>> 0;
-        this.time = 0;
-        this.nextLaneIndex = LANE_START_OFFSET;
+        this.nextIndex = LANE_START_OFFSET;
         this.lastType = 'grass';
         this.consecutive = 0;
-
-        for (let i = 0; i < 9; i++) {
-          this.createLane('grass', false);
-        }
-        while (this.lanes.length < TOTAL_LANES_BUFFER) {
-          this.generateNextLane();
-        }
       }
 
-      pickNextType(biome, rand) {
+      next() {
+        const index = this.nextIndex++;
+        if (index < LANE_START_OFFSET + SAFE_START_LANES) return planLane(this.seed, index, 'grass', false);
+        const type = this.pickType(getBiomeForLane(index), laneRng(this.seed, index, 1));
+        return planLane(this.seed, index, type, true);
+      }
+
+      pickType(biome, rand) {
         if (this.consecutive >= 4) {
           this.consecutive = 0;
           return this.lastType === 'grass' ? 'road' : 'grass';
@@ -2310,21 +2374,65 @@
         }
         return t;
       }
+    }
 
-      generateNextLane() {
-        const biome = getBiomeForLane(this.nextLaneIndex);
-        const type = this.pickNextType(biome, laneRng(this.seed, this.nextLaneIndex, 1));
-        this.createLane(type, true);
+    // 같은 시드라면 어느 기기에서든 같은 값이 나오는 맵 지문 (대전 시작 시 동기화 검증용, 메시를 만들지 않아 가볍다)
+    function computeSeedSignature(seed, fromIndex, toIndex) {
+      const sequence = new LaneSequence(seed);
+      let h = 0x811C9DC5;
+      while (sequence.nextIndex <= toIndex) {
+        const p = sequence.next();
+        if (p.index < fromIndex) continue;
+        const parts = [
+          p.index, p.type, p.direction, Math.round(p.speed * 1000), p.vehicleType || '', p.logLen,
+          p.lilyX ?? '', p.firstTrainAt === null ? '' : Math.round(p.firstTrainAt * 1000), p.coinCol ?? '',
+          't', ...p.treeCols,
+          'v', ...p.vehicleXs.map(x => Math.round(x * 100)),
+          'l', ...p.logXs.map(x => Math.round(x * 100))
+        ];
+        h = hash32(h, ...Array.from(parts.join('|'), ch => ch.charCodeAt(0)));
+      }
+      return h.toString(16);
+    }
+
+    class LaneManager {
+      constructor() {
+        this.lanes = [];
+        this.seed = newSeed();
+        this.sequence = new LaneSequence(this.seed);
+        this.time = 0; // 판 시작 후 경과한 시뮬레이션 시간(초). 모든 이동 장애물의 위치가 이 값의 함수다.
       }
 
-      createLane(type, canHaveObstacles = true) {
-        const rand = laneRng(this.seed, this.nextLaneIndex, 2);
-        const z = this.nextLaneIndex * CELL_SIZE;
+      get nextLaneIndex() {
+        return this.sequence.nextIndex;
+      }
+
+      init(seed = newSeed()) {
+        this.lanes.forEach(l => {
+          scene.remove(l.mesh);
+          disposeHierarchy(l.mesh);
+        });
+        this.lanes = [];
+        this.seed = seed >>> 0;
+        this.sequence = new LaneSequence(this.seed);
+        this.time = 0;
+
+        while (this.lanes.length < TOTAL_LANES_BUFFER) {
+          this.generateNextLane();
+        }
+      }
+
+      generateNextLane() {
+        this.createLane(this.sequence.next());
+      }
+
+      // 레인 계획(planLane)대로 3D 레인을 만든다
+      createLane(plan) {
+        const { index, type, biome } = plan;
+        const z = index * CELL_SIZE;
         const width = LANE_WIDTH;
         const laneMesh = new THREE.Group();
         laneMesh.position.set(0, 0, z);
-
-        const biome = getBiomeForLane(this.nextLaneIndex);
 
         let gColor = biome.groundColor;
         let gHeight = 8;
@@ -2346,15 +2454,15 @@
         laneMesh.add(ground);
 
         const laneData = {
-          index: this.nextLaneIndex,
+          index,
           z: z,
           type: type,
           biome: biome,
           mesh: laneMesh,
           obstacles: [],
           coins: [],
-          speed: 0,
-          direction: rand() < 0.5 ? 1 : -1,
+          speed: plan.speed,
+          direction: plan.direction,
           trainWarning: false,
           trainTimer: 0,
           bellTimer: 0,
@@ -2364,23 +2472,17 @@
         };
 
         if (type === 'grass') {
-          if (canHaveObstacles) {
-            const safeCol = Math.floor((rand() - 0.5) * (GRID_COLS - 6));
-            for (let c = -Math.floor(GRID_COLS / 2); c <= Math.floor(GRID_COLS / 2); c++) {
-              if (Math.abs(c - safeCol) <= 1) continue;
-              if (rand() < 0.28) {
-                let obsMesh;
-                if (biome.obstacleType === 'cactus') obsMesh = createCactus();
-                else if (biome.obstacleType === 'snowtree') obsMesh = createSnowPine();
-                else if (biome.obstacleType === 'streetlight') obsMesh = createStreetLight();
-                else obsMesh = createTree();
+          plan.treeCols.forEach(c => {
+            let obsMesh;
+            if (biome.obstacleType === 'cactus') obsMesh = createCactus();
+            else if (biome.obstacleType === 'snowtree') obsMesh = createSnowPine();
+            else if (biome.obstacleType === 'streetlight') obsMesh = createStreetLight();
+            else obsMesh = createTree();
 
-                obsMesh.position.x = c * CELL_SIZE;
-                laneMesh.add(obsMesh);
-                laneData.obstacles.push({ type: 'tree', mesh: obsMesh, col: c });
-              }
-            }
-          }
+            obsMesh.position.x = c * CELL_SIZE;
+            laneMesh.add(obsMesh);
+            laneData.obstacles.push({ type: 'tree', mesh: obsMesh, col: c });
+          });
         } else if (type === 'road') {
           for (let x = -width / 2 + 25; x < width / 2; x += 55) {
             const stripe = createBox(22, 0.2, 2.5, biome.id === 'desert' ? 0xFDE68A : 0xF8FAFC, false, false);
@@ -2388,23 +2490,11 @@
             laneMesh.add(stripe);
           }
 
-          let vehicleType = 'car';
-          const vehicleRoll = rand();
-          if (vehicleRoll < 0.28) vehicleType = 'truck';
-          else if (vehicleRoll < 0.42 && biome.id === 'city') vehicleType = 'police';
-          else if (vehicleRoll < 0.55) vehicleType = 'supercar';
-
-          const speedMult = vehicleType === 'supercar' ? 1.6 : (vehicleType === 'police' ? 1.4 : 1.0);
-          laneData.speed = (55 + rand() * 65) * speedMult * laneData.direction;
-
-          const count = vehicleType === 'truck' ? 2 : (vehicleType === 'supercar' ? 2 : (2 + Math.floor(rand() * 2)));
-          const spacing = width / count;
-
-          for (let i = 0; i < count; i++) {
+          const vehicleType = plan.vehicleType;
+          plan.vehicleXs.forEach(x => {
             const vehicle = createVehicle(vehicleType);
-            const x = -width / 2 + i * spacing + (rand() * 40 - 20);
             vehicle.position.x = x;
-            if (laneData.direction < 0) vehicle.rotation.y = Math.PI;
+            if (plan.direction < 0) vehicle.rotation.y = Math.PI;
             laneMesh.add(vehicle);
 
             laneData.obstacles.push({
@@ -2414,7 +2504,7 @@
               halfWidth: vehicleType === 'truck' ? 24 : (vehicleType === 'supercar' ? 18 : 15),
               halfDepth: 8
             });
-          }
+          });
         } else if (type === 'ice') {
           for (let x = -width / 2 + 30; x < width / 2; x += 80) {
             const crack = createBox(14, 0.2, 8, COLORS.iceCrack, false, false);
@@ -2422,14 +2512,8 @@
             laneMesh.add(crack);
           }
         } else if (type === 'river') {
-          laneData.speed = (36 + rand() * 48) * laneData.direction;
-          const logLen = rand() < 0.45 ? 58 : 80;
-          const count = 3;
-          const spacing = width / count;
-
-          for (let i = 0; i < count; i++) {
-            const log = createLog(logLen);
-            const x = -width / 2 + i * spacing + (rand() * 35);
+          plan.logXs.forEach(x => {
+            const log = createLog(plan.logLen);
             log.position.x = x;
             laneMesh.add(log);
 
@@ -2437,14 +2521,14 @@
               type: 'log',
               mesh: log,
               baseX: x,
-              halfWidth: logLen / 2,
+              halfWidth: plan.logLen / 2,
               halfDepth: 8
             });
-          }
+          });
 
-          if (rand() < 0.32) {
+          if (plan.lilyX !== null) {
             const pad = createLilyPad();
-            pad.position.x = (Math.floor(rand() * 11) - 5) * CELL_SIZE;
+            pad.position.x = plan.lilyX;
             laneMesh.add(pad);
             laneData.obstacles.push({
               type: 'lily',
@@ -2482,18 +2566,19 @@
           laneData.signalLight1 = bulb1;
           laneData.signalLight2 = bulb2;
 
-          // 열차 운행표: 판 시작(time=0) 기준 절대 시각으로 관리해 레인이 언제 생성되든 같은 시각에 열차가 온다
-          laneData.trainRng = laneRng(this.seed, this.nextLaneIndex, 3);
-          laneData.nextTrainAt = 3.5 + laneData.trainRng() * 5;
-          laneData.trainSpeed = TRAIN_SPEED * laneData.direction;
+          // 열차 운행표: 판 시작(time=0) 기준 절대 시각으로 관리해 레인이 언제 생성되든 같은 시각에 열차가 온다.
+          // planLane과 같은 스트림을 다시 만들고 첫 시각에 쓴 난수 하나를 건너뛴다.
+          laneData.trainRng = laneRng(this.seed, index, 3);
+          laneData.trainRng();
+          laneData.nextTrainAt = plan.firstTrainAt;
+          laneData.trainSpeed = TRAIN_SPEED * plan.direction;
         }
 
-        if (canHaveObstacles && rand() < 0.16) {
-          const coinCol = Math.floor((rand() - 0.5) * (GRID_COLS - 4));
+        if (plan.coinCol !== null) {
           const coinMesh = createCoin();
-          coinMesh.position.x = coinCol * CELL_SIZE;
+          coinMesh.position.x = plan.coinCol * CELL_SIZE;
           laneMesh.add(coinMesh);
-          laneData.coins.push({ mesh: coinMesh, col: coinCol, collected: false });
+          laneData.coins.push({ mesh: coinMesh, col: plan.coinCol, collected: false });
         }
 
         // 판 도중에 생성된 레인은 현재 시각의 상태로 조용히 맞춘다
@@ -2501,7 +2586,6 @@
 
         scene.add(laneMesh);
         this.lanes.push(laneData);
-        this.nextLaneIndex++;
       }
 
       // 레인의 이동 장애물을 this.time 시점 상태로 맞춘다. delta가 0이면 효과음 없이 상태만 맞춘다.
@@ -2602,19 +2686,6 @@
         return this.lanes.find(l => l.index === index);
       }
 
-      // 같은 시드라면 같은 값이 나와야 하는 맵 지문 (대전 동기화 검증용)
-      signature(fromIndex, toIndex) {
-        let h = 0x811C9DC5;
-        for (const lane of this.lanes) {
-          if (lane.index < fromIndex || lane.index > toIndex) continue;
-          const parts = [lane.index, lane.type, lane.direction, Math.round(lane.speed * 1000)];
-          lane.obstacles.forEach(o => parts.push(o.type, o.col ?? '', Math.round(o.mesh.position.x * 100)));
-          lane.coins.forEach(c => parts.push('c', c.col));
-          if (lane.type === 'rail') parts.push(Math.round(lane.nextTrainAt * 1000));
-          h = hash32(h, ...Array.from(parts.join('|'), ch => ch.charCodeAt(0)));
-        }
-        return h.toString(16);
-      }
     }
 
 
@@ -3930,7 +4001,7 @@
       countdownEnd: 0,
       startPerf: 0,
       elapsed: 0,
-      difficulty: 'normal',
+      difficulty: BOT_DIFFICULTY[localStorage.getItem('crossy_bot_difficulty')] ? localStorage.getItem('crossy_bot_difficulty') : 'normal',
       me: null,
       rival: null,
       bot: null,           // { player, agent, cameraZ }
@@ -4239,7 +4310,7 @@
 
       if (versus.mode === 'online' && reason !== 'forfeit' && reason !== 'disconnected') {
         // 상대의 최종 기록을 받은 뒤 결과를 확정한다 (못 받으면 마지막으로 받은 상태로 판정)
-        sendRoom('final', competitorPayload(versus.me));
+        sendRoom('final', { ...competitorPayload(versus.me), endReason: reason });
         if (online.rivalFinal) {
           showVersusResult();
         } else {
@@ -4248,7 +4319,27 @@
         }
         return;
       }
-      if (versus.mode === 'online' && reason === 'forfeit') sendRoom('final', competitorPayload(versus.me));
+      // 부전승·부전패는 상대에게도 사유를 알려 양쪽 결과가 엇갈리지 않게 한다 (연결이 살아 있을 때만 전달됨)
+      if (versus.mode === 'online') sendRoom('final', { ...competitorPayload(versus.me), endReason: reason });
+      showVersusResult();
+    }
+
+    // 상대가 보낸 종료 사유가 부전승·부전패이면 내 결과를 그에 맞춘다
+    function applyRemoteForfeitOutcome(myReason) {
+      if (!versus.active || versus.mode !== 'online') return;
+      if (versus.phase === 'running') {
+        finishVersus(myReason);
+        return;
+      }
+      if (versus.phase !== 'settling' && versus.phase !== 'finished') return;
+      // 양쪽이 같은 종류의 주장을 동시에 했다면(둘 다 스스로 부전패 / 둘 다 상대 이탈로 부전승) 어느 쪽도 이기지 않도록 무효.
+      // 각 클라이언트가 같은 규칙으로 판단하므로 메시지 도착 순서와 무관하게 양쪽 결과가 일치한다.
+      const mine = versus.endReason;
+      const clash = (mine === 'disconnected' && myReason === 'forfeit') || (mine === 'forfeit' && myReason === 'disconnected');
+      const next = (clash || mine === 'void') ? 'void' : myReason;
+      if (next === mine) return;
+      versus.endReason = next;
+      versus.phase = 'settling';
       showVersusResult();
     }
 
@@ -4262,7 +4353,8 @@
       const reason = versus.endReason;
       let winner;
       if (reason === 'forfeit') winner = 'me';
-      else if (reason === 'disconnected') winner = null;
+      else if (reason === 'disconnected') winner = 'rival';
+      else if (reason === 'void') winner = null;
       else winner = decideWinner(me, rival);
 
       const titleEl = document.getElementById('vs-result-title');
@@ -4271,13 +4363,13 @@
         titleEl.style.color = '#16a34a';
         sfx.playFanfare();
       } else if (winner === 'rival') {
-        titleEl.textContent = '😵 패배';
+        titleEl.textContent = reason === 'disconnected' ? '📡 부전패' : '😵 패배';
         titleEl.style.color = '#ef4444';
       } else if (winner === 'draw') {
         titleEl.textContent = '🤝 무승부';
         titleEl.style.color = '#0f172a';
       } else {
-        titleEl.textContent = '⚠️ 연결 끊김';
+        titleEl.textContent = '⚠️ 무효';
         titleEl.style.color = '#b45309';
       }
 
@@ -4285,10 +4377,12 @@
         time: '⏱️ 시간 종료!',
         'both-dead': '💥 둘 다 탈락!',
         decided: me.dead ? '💥 탈락 — 상대가 이미 앞서 있습니다' : '🎯 상대 탈락 — 이미 앞서 있습니다',
-        forfeit: '🏳️ 상대가 대전을 떠나 부전승입니다',
-        disconnected: '서버 연결이 끊겨 이번 대전은 무효 처리되었습니다'
+        forfeit: '🏳️ 상대가 나갔거나 연결이 끊겨 부전승입니다',
+        disconnected: '연결이 끊기거나 게임 화면을 5초 넘게 벗어나 부전패로 처리되었습니다',
+        void: '양쪽 모두 연결이 끊긴 것으로 판단되어 이번 판은 무효 처리되었습니다'
       }[reason] || '';
-      const decidedByTieBreak = reason !== 'forfeit' && (winner === 'me' || winner === 'rival') && me.score === rival.score;
+      const decidedByTieBreak = reason !== 'forfeit' && reason !== 'disconnected' && reason !== 'void' &&
+        (winner === 'me' || winner === 'rival') && me.score === rival.score;
       const tieNote = decidedByTieBreak ? ' (동점 — 먼저 도달한 쪽 승리)' : '';
       document.getElementById('vs-result-reason').textContent = reasonText + tieNote;
       document.getElementById('vs-result-me-name').textContent = `${me.name} (나)`;
@@ -4298,11 +4392,12 @@
 
       const rematchBtn = document.getElementById('vs-rematch-btn');
       const statusEl = document.getElementById('vs-rematch-status');
+      document.getElementById('vs-result-diff').style.display = versus.mode === 'bot' ? 'block' : 'none';
       if (versus.mode === 'bot') {
         rematchBtn.disabled = false;
-        statusEl.textContent = `봇 난이도: ${(BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal).label}`;
+        statusEl.textContent = '난이도를 바꿔 바로 재대결할 수 있습니다';
       } else {
-        const canRematch = !!online.channel && !!online.opponent && reason !== 'forfeit' && reason !== 'disconnected';
+        const canRematch = !!online.channel && !!online.opponent && !['forfeit', 'disconnected', 'void'].includes(reason);
         rematchBtn.disabled = !canRematch;
         statusEl.textContent = canRematch ? '둘 다 [재대결]을 누르면 새 맵으로 시작합니다' : '상대와 연결되어 있지 않아 재대결할 수 없습니다';
       }
@@ -4331,9 +4426,10 @@
        -------------------------------------------------------------------------- */
     const SUPABASE_URL = '';
     const SUPABASE_PUBLISHABLE_KEY = '';
-    const SUPABASE_SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js';
+    // 외부 CDN 장애·차단에 영향받지 않도록 저장소에 같이 배포한다 (vendor/, SRI로 무결성 확인)
+    const SUPABASE_SDK_URL = 'vendor/supabase-js-2.117.2/supabase.min.js';
     const SUPABASE_SDK_INTEGRITY = 'sha384-WgXwGL6fUsYJWNaKJgVbrJKGRQwc1vieh2oy4kw9nXqpNDz3tdSsqEYUgeHD/NuF';
-    const VERSUS_PROTOCOL = 1;            // 맵 생성·메시지 형식이 바뀌면 올린다 (다른 버전끼리는 매칭 거부)
+    const VERSUS_PROTOCOL = 2;            // 맵 생성·메시지 형식이 바뀌면 올린다 (다른 버전끼리는 매칭 거부)
     const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const ROOM_CODE_LENGTH = 6;
     const ONLINE_STATE_MIN_INTERVAL_MS = 160;
@@ -4342,7 +4438,10 @@
     const ONLINE_LEAVE_GRACE_MS = 5000;
     const ONLINE_FINAL_WAIT_MS = 2500;
     const ONLINE_MAX_SUBSTEP = 1 / 30;     // 레이스 시계를 따라잡을 때 한 번에 진행할 최대 시뮬레이션 시간
-    const MAP_SIGNATURE_RANGE = [0, 40];
+    const MAP_SIGNATURE_RANGE = [0, 100];  // 바이옴 경계(45·90레인)를 넘는 구간까지 비교
+    const RIVAL_MAX_LANES_PER_SEC = 8;
+    const RIVAL_CLOCK_SLACK_SEC = 2;      // 양쪽 출발 시각 차이(통신 지연) 허용치
+
 
     const online = {
       clientId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `c${Date.now()}${Math.random().toString(36).slice(2)}`,
@@ -4357,6 +4456,7 @@
       joinTimer: null,
       finalTimer: null,
       disconnectedSince: 0,
+      rejectedStates: 0,
       rivalFinal: null,
       wantRematch: false,
       rivalWantsRematch: false
@@ -4619,6 +4719,8 @@
       if (!opp) return;
       const seed = newSeed();
       const countdownMs = VERSUS_COUNTDOWN_MS + 500;
+      // 지문은 카운트다운 시작 전에 계산한다 (메시 없이 계획만 해시하므로 가볍다)
+      const sig = computeSeedSignature(seed, MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]);
       online.rivalFinal = null;
       online.wantRematch = false;
       online.rivalWantsRematch = false;
@@ -4626,7 +4728,7 @@
       sendRoom('start', {
         seed,
         countdownMs,
-        sig: laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]),
+        sig,
         name: getPlayerName(),
         charId: selectedCharId
       });
@@ -4646,11 +4748,12 @@
         online.rivalWantsRematch = false;
         const rivalName = online.opponent ? online.opponent.name : msg.name;
         const rivalChar = online.opponent ? online.opponent.charId : msg.charId;
-        startVersusMatch({ mode: 'online', seed, rivalName, rivalCharId: rivalChar, countdownMs });
-        if (laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]) !== msg.sig) {
+        if (computeSeedSignature(seed, MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]) !== msg.sig) {
           sendRoom('abort', { reason: 'map' });
           failOnline('맵 동기화에 실패했습니다. 두 기기 모두 새로고침 후 다시 시도해 주세요.');
+          return;
         }
+        startVersusMatch({ mode: 'online', seed, rivalName, rivalCharId: rivalChar, countdownMs });
         return;
       }
 
@@ -4658,10 +4761,13 @@
 
       if (msg.type === 'state' || msg.type === 'final') {
         if (!versus.active || versus.mode !== 'online' || !versus.rival) return;
-        applyRivalState(msg);
-        if (msg.type === 'final') {
+        const accepted = applyRivalState(msg);
+        // 검증을 통과한 최종 기록만 결과 확정에 쓴다 (버린 경우 대기 시간 후 마지막 정상 상태로 판정)
+        if (msg.type === 'final' && accepted) {
           online.rivalFinal = msg;
-          if (versus.phase === 'settling') showVersusResult();
+          if (msg.endReason === 'forfeit') applyRemoteForfeitOutcome('disconnected');
+          else if (msg.endReason === 'disconnected') applyRemoteForfeitOutcome('forfeit');
+          else if (versus.phase === 'settling') showVersusResult();
         }
       } else if (msg.type === 'rematch') {
         online.rivalWantsRematch = true;
@@ -4689,23 +4795,48 @@
       }
     }
 
+    // 점프 0.135초 + 빙판 미끄럼 0.14초 기준 최대 약 7.4레인/초 → 8레인/초에 출발 시각 차이 여유를 더한 상한
+    function maxPlausibleLane(elapsedSec) {
+      return Math.floor(RIVAL_MAX_LANES_PER_SEC * (elapsedSec + 1)) + 2;
+    }
+
+    // 정상 클라이언트로는 나올 수 없는 상태면 false (클라이언트 판정 구조의 최소 방어선)
+    // - 점수는 상대가 보고한 도달 시각 기준 상한 이내여야 하고, 그 도달 시각은 내 경과 시간보다 크게 앞설 수 없다
+    function isPlausibleRivalState(score, reachedAt, lane) {
+      if (Number.isFinite(score) && score > 0) {
+        if (!Number.isFinite(reachedAt) || reachedAt < 0 || reachedAt > versus.elapsed + RIVAL_CLOCK_SLACK_SEC) return false;
+        if (score > maxPlausibleLane(reachedAt)) return false;
+      }
+      if (Number.isFinite(lane) && Math.abs(lane) > maxPlausibleLane(versus.elapsed + RIVAL_CLOCK_SLACK_SEC)) return false;
+      return true;
+    }
+
+    // 반영했으면 true, 비정상 값이라 버렸으면 false
     function applyRivalState(msg) {
       const rival = versus.rival;
       const score = Math.floor(Number(msg.score));
-      if (Number.isFinite(score) && score >= rival.score && score < 100000) {
-        if (score > rival.score) rival.reachedAt = Math.max(0, Number(msg.reachedAt) || 0);
+      const reachedAt = Number(msg.reachedAt);
+      const lane = Math.round(Number(msg.lane));
+      if (!isPlausibleRivalState(score, reachedAt, lane)) {
+        online.rejectedStates++;
+        if (online.rejectedStates === 1) console.warn('[versus] 비정상 상대 상태 무시', { score, reachedAt, lane, elapsed: versus.elapsed });
+        return false;
+      }
+      if (Number.isFinite(score) && score >= rival.score) {
+        if (score > rival.score) rival.reachedAt = Math.min(reachedAt, VERSUS_DURATION);
         rival.score = score;
       }
-      if (versus.ghost && Number.isFinite(Number(msg.lane))) {
+      if (versus.ghost && Number.isFinite(lane)) {
         const t = versus.ghost.target;
-        t.lane = Math.round(Number(msg.lane));
-        t.col = Math.round(Number(msg.col)) || 0;
+        t.lane = lane;
+        t.col = Math.max(-GRID_COLS, Math.min(GRID_COLS, Math.round(Number(msg.col)) || 0));
         t.x = Number.isFinite(Number(msg.x)) ? Number(msg.x) : t.col * CELL_SIZE;
         t.onLog = !!msg.onLog;
       }
       if (msg.dead && !rival.dead) {
         onVersusRivalDeath(typeof msg.reason === 'string' ? msg.reason.slice(0, 40) : '');
       }
+      return true;
     }
 
     function sendVersusState(force = false) {
@@ -4732,7 +4863,7 @@
     function onlineTick(now) {
       if (versus.phase === 'running' || versus.phase === 'settling') sendVersusState();
 
-      // 내 쪽 연결이 오래 끊기면 이번 판은 무효 처리 (양쪽이 서로 부전승을 주장하지 않도록)
+      // 내 쪽 연결이 오래 끊기면 부전패 처리 (상대는 같은 시점에 내 presence 이탈로 부전승을 확정한다)
       if (versus.phase === 'running' && online.channel) {
         if (online.channel.state === 'joined') {
           online.disconnectedSince = 0;
@@ -4846,17 +4977,29 @@
     document.getElementById('vs-tab-online').addEventListener('click', () => setVersusTab('online'));
     document.getElementById('vs-close-btn').addEventListener('click', closeVersusModal);
 
+    // 로비·결과 화면의 난이도 버튼을 함께 갱신하고, 선택은 다음 방문까지 기억한다
+    function setBotDifficulty(diff) {
+      if (!BOT_DIFFICULTY[diff]) return;
+      versus.difficulty = diff;
+      localStorage.setItem('crossy_bot_difficulty', diff);
+      document.querySelectorAll('.vs-diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === diff));
+      if (versus.phase === 'finished' && versus.mode === 'bot') {
+        document.getElementById('vs-rematch-status').textContent = `[재대결]을 누르면 ${BOT_DIFFICULTY[diff].label} 봇과 새 맵에서 붙습니다`;
+      }
+    }
+
+    function botRivalName() {
+      return `봇(${(BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal).label})`;
+    }
+
     document.querySelectorAll('.vs-diff-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        versus.difficulty = btn.dataset.diff;
-        document.querySelectorAll('.vs-diff-btn').forEach(b => b.classList.toggle('active', b === btn));
-      });
+      btn.addEventListener('click', () => setBotDifficulty(btn.dataset.diff));
     });
+    setBotDifficulty(versus.difficulty);
 
     document.getElementById('vs-bot-start').addEventListener('click', () => {
-      const cfg = BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal;
       const rivalChar = selectedCharId === 'robot' ? 'chicken' : 'robot';
-      startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: `봇(${cfg.label})`, rivalCharId: rivalChar });
+      startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: botRivalName(), rivalCharId: rivalChar });
     });
 
     document.getElementById('vs-create-room').addEventListener('click', createOnlineRoom);
@@ -4876,7 +5019,7 @@
 
     document.getElementById('vs-rematch-btn').addEventListener('click', () => {
       if (versus.mode === 'bot') {
-        startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: versus.rival.name, rivalCharId: versus.rival.charId });
+        startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: botRivalName(), rivalCharId: versus.rival.charId });
         return;
       }
       if (!online.opponent) return;
@@ -5032,6 +5175,11 @@
         // 온라인: 장애물 시간이 레이스 시계(벽시계)와 같아야 "같은 시각 = 같은 맵"이 유지된다.
         // 프레임 지연·백그라운드 복귀로 뒤처진 만큼 작은 스텝으로 나눠 따라잡는다.
         let lag = versus.elapsed - laneManager.time;
+        if (lag * 1000 > ONLINE_LEAVE_GRACE_MS) {
+          // 백그라운드 전환·장시간 멈춤: 상대 화면에서는 이미 내가 멈춰 있었으므로 수십 초를 몰아서 시뮬레이션하지 않는다
+          finishVersus('disconnected');
+          lag = 0;
+        }
         while (lag > 1e-6) {
           const step = Math.min(lag, ONLINE_MAX_SUBSTEP);
           stepWorld(step);
