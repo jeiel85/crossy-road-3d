@@ -1178,6 +1178,14 @@
           <strong id="vs-result-rival-score" style="color:#ef4444;">0</strong>
         </div>
       </div>
+      <div id="vs-result-diff" style="display:none; text-align:left;">
+        <div class="vs-field-label" style="margin-top:0;">다음 판 봇 난이도</div>
+        <div class="vs-diff-row">
+          <button class="vs-diff-btn" data-diff="easy">😊 쉬움</button>
+          <button class="vs-diff-btn" data-diff="normal">🙂 보통</button>
+          <button class="vs-diff-btn" data-diff="hard">😈 어려움</button>
+        </div>
+      </div>
       <div style="display:flex; gap:8px;">
         <button id="vs-rematch-btn" class="btn-primary" style="flex:1.6;">재대결</button>
         <button id="vs-exit-btn" class="btn-action" style="flex:1; justify-content:center;">나가기</button>
@@ -2602,6 +2610,10 @@
         return this.lanes.find(l => l.index === index);
       }
 
+      ensureGeneratedThrough(index) {
+        while (this.nextLaneIndex <= index) this.generateNextLane();
+      }
+
       // 같은 시드라면 같은 값이 나와야 하는 맵 지문 (대전 동기화 검증용)
       signature(fromIndex, toIndex) {
         let h = 0x811C9DC5;
@@ -3930,7 +3942,7 @@
       countdownEnd: 0,
       startPerf: 0,
       elapsed: 0,
-      difficulty: 'normal',
+      difficulty: BOT_DIFFICULTY[localStorage.getItem('crossy_bot_difficulty')] ? localStorage.getItem('crossy_bot_difficulty') : 'normal',
       me: null,
       rival: null,
       bot: null,           // { player, agent, cameraZ }
@@ -4239,7 +4251,7 @@
 
       if (versus.mode === 'online' && reason !== 'forfeit' && reason !== 'disconnected') {
         // 상대의 최종 기록을 받은 뒤 결과를 확정한다 (못 받으면 마지막으로 받은 상태로 판정)
-        sendRoom('final', competitorPayload(versus.me));
+        sendRoom('final', { ...competitorPayload(versus.me), endReason: reason });
         if (online.rivalFinal) {
           showVersusResult();
         } else {
@@ -4248,8 +4260,23 @@
         }
         return;
       }
-      if (versus.mode === 'online' && reason === 'forfeit') sendRoom('final', competitorPayload(versus.me));
+      // 부전승·부전패는 상대에게도 사유를 알려 양쪽 결과가 엇갈리지 않게 한다 (연결이 살아 있을 때만 전달됨)
+      if (versus.mode === 'online') sendRoom('final', { ...competitorPayload(versus.me), endReason: reason });
       showVersusResult();
+    }
+
+    // 상대가 보낸 종료 사유가 부전승·부전패이면 내 결과를 그에 맞춘다
+    function applyRemoteForfeitOutcome(myReason) {
+      if (!versus.active || versus.mode !== 'online') return;
+      if (versus.phase === 'running') {
+        finishVersus(myReason);
+        return;
+      }
+      if ((versus.phase === 'settling' || versus.phase === 'finished') && versus.endReason !== myReason) {
+        versus.endReason = myReason;
+        versus.phase = 'settling';
+        showVersusResult();
+      }
     }
 
     function showVersusResult() {
@@ -4262,7 +4289,7 @@
       const reason = versus.endReason;
       let winner;
       if (reason === 'forfeit') winner = 'me';
-      else if (reason === 'disconnected') winner = null;
+      else if (reason === 'disconnected') winner = 'rival';
       else winner = decideWinner(me, rival);
 
       const titleEl = document.getElementById('vs-result-title');
@@ -4271,24 +4298,22 @@
         titleEl.style.color = '#16a34a';
         sfx.playFanfare();
       } else if (winner === 'rival') {
-        titleEl.textContent = '😵 패배';
+        titleEl.textContent = reason === 'disconnected' ? '📡 부전패' : '😵 패배';
         titleEl.style.color = '#ef4444';
-      } else if (winner === 'draw') {
+      } else {
         titleEl.textContent = '🤝 무승부';
         titleEl.style.color = '#0f172a';
-      } else {
-        titleEl.textContent = '⚠️ 연결 끊김';
-        titleEl.style.color = '#b45309';
       }
 
       const reasonText = {
         time: '⏱️ 시간 종료!',
         'both-dead': '💥 둘 다 탈락!',
         decided: me.dead ? '💥 탈락 — 상대가 이미 앞서 있습니다' : '🎯 상대 탈락 — 이미 앞서 있습니다',
-        forfeit: '🏳️ 상대가 대전을 떠나 부전승입니다',
-        disconnected: '서버 연결이 끊겨 이번 대전은 무효 처리되었습니다'
+        forfeit: '🏳️ 상대가 나갔거나 연결이 끊겨 부전승입니다',
+        disconnected: '연결이 끊기거나 게임 화면을 5초 넘게 벗어나 부전패로 처리되었습니다'
       }[reason] || '';
-      const decidedByTieBreak = reason !== 'forfeit' && (winner === 'me' || winner === 'rival') && me.score === rival.score;
+      const decidedByTieBreak = reason !== 'forfeit' && reason !== 'disconnected' &&
+        (winner === 'me' || winner === 'rival') && me.score === rival.score;
       const tieNote = decidedByTieBreak ? ' (동점 — 먼저 도달한 쪽 승리)' : '';
       document.getElementById('vs-result-reason').textContent = reasonText + tieNote;
       document.getElementById('vs-result-me-name').textContent = `${me.name} (나)`;
@@ -4298,9 +4323,10 @@
 
       const rematchBtn = document.getElementById('vs-rematch-btn');
       const statusEl = document.getElementById('vs-rematch-status');
+      document.getElementById('vs-result-diff').style.display = versus.mode === 'bot' ? 'block' : 'none';
       if (versus.mode === 'bot') {
         rematchBtn.disabled = false;
-        statusEl.textContent = `봇 난이도: ${(BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal).label}`;
+        statusEl.textContent = '난이도를 바꿔 바로 재대결할 수 있습니다';
       } else {
         const canRematch = !!online.channel && !!online.opponent && reason !== 'forfeit' && reason !== 'disconnected';
         rematchBtn.disabled = !canRematch;
@@ -4331,9 +4357,10 @@
        -------------------------------------------------------------------------- */
     const SUPABASE_URL = '';
     const SUPABASE_PUBLISHABLE_KEY = '';
-    const SUPABASE_SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js';
+    // 외부 CDN 장애·차단에 영향받지 않도록 저장소에 같이 배포한다 (vendor/, SRI로 무결성 확인)
+    const SUPABASE_SDK_URL = 'vendor/supabase-js-2.117.2/supabase.min.js';
     const SUPABASE_SDK_INTEGRITY = 'sha384-WgXwGL6fUsYJWNaKJgVbrJKGRQwc1vieh2oy4kw9nXqpNDz3tdSsqEYUgeHD/NuF';
-    const VERSUS_PROTOCOL = 1;            // 맵 생성·메시지 형식이 바뀌면 올린다 (다른 버전끼리는 매칭 거부)
+    const VERSUS_PROTOCOL = 2;            // 맵 생성·메시지 형식이 바뀌면 올린다 (다른 버전끼리는 매칭 거부)
     const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const ROOM_CODE_LENGTH = 6;
     const ONLINE_STATE_MIN_INTERVAL_MS = 160;
@@ -4342,7 +4369,15 @@
     const ONLINE_LEAVE_GRACE_MS = 5000;
     const ONLINE_FINAL_WAIT_MS = 2500;
     const ONLINE_MAX_SUBSTEP = 1 / 30;     // 레이스 시계를 따라잡을 때 한 번에 진행할 최대 시뮬레이션 시간
-    const MAP_SIGNATURE_RANGE = [0, 40];
+    const MAP_SIGNATURE_RANGE = [0, 100];  // 바이옴 경계(45·90레인)를 넘는 구간까지 비교
+    const RIVAL_MAX_LANES_PER_SEC = 8;
+    const RIVAL_CLOCK_SLACK_SEC = 2;      // 양쪽 출발 시각 차이(통신 지연) 허용치
+
+    // 시작 시 비교하는 맵 지문: 비교 구간을 먼저 생성해 둔다 (같은 시드면 생성 시점과 무관하게 같은 결과)
+    function computeMapSignature() {
+      laneManager.ensureGeneratedThrough(MAP_SIGNATURE_RANGE[1]);
+      return laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]);
+    }
 
     const online = {
       clientId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `c${Date.now()}${Math.random().toString(36).slice(2)}`,
@@ -4357,6 +4392,7 @@
       joinTimer: null,
       finalTimer: null,
       disconnectedSince: 0,
+      rejectedStates: 0,
       rivalFinal: null,
       wantRematch: false,
       rivalWantsRematch: false
@@ -4626,7 +4662,7 @@
       sendRoom('start', {
         seed,
         countdownMs,
-        sig: laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]),
+        sig: computeMapSignature(),
         name: getPlayerName(),
         charId: selectedCharId
       });
@@ -4647,7 +4683,7 @@
         const rivalName = online.opponent ? online.opponent.name : msg.name;
         const rivalChar = online.opponent ? online.opponent.charId : msg.charId;
         startVersusMatch({ mode: 'online', seed, rivalName, rivalCharId: rivalChar, countdownMs });
-        if (laneManager.signature(MAP_SIGNATURE_RANGE[0], MAP_SIGNATURE_RANGE[1]) !== msg.sig) {
+        if (computeMapSignature() !== msg.sig) {
           sendRoom('abort', { reason: 'map' });
           failOnline('맵 동기화에 실패했습니다. 두 기기 모두 새로고침 후 다시 시도해 주세요.');
         }
@@ -4658,10 +4694,13 @@
 
       if (msg.type === 'state' || msg.type === 'final') {
         if (!versus.active || versus.mode !== 'online' || !versus.rival) return;
-        applyRivalState(msg);
-        if (msg.type === 'final') {
+        const accepted = applyRivalState(msg);
+        // 검증을 통과한 최종 기록만 결과 확정에 쓴다 (버린 경우 대기 시간 후 마지막 정상 상태로 판정)
+        if (msg.type === 'final' && accepted) {
           online.rivalFinal = msg;
-          if (versus.phase === 'settling') showVersusResult();
+          if (msg.endReason === 'forfeit') applyRemoteForfeitOutcome('disconnected');
+          else if (msg.endReason === 'disconnected') applyRemoteForfeitOutcome('forfeit');
+          else if (versus.phase === 'settling') showVersusResult();
         }
       } else if (msg.type === 'rematch') {
         online.rivalWantsRematch = true;
@@ -4689,23 +4728,48 @@
       }
     }
 
+    // 점프 0.135초 + 빙판 미끄럼 0.14초 기준 최대 약 7.4레인/초 → 8레인/초에 출발 시각 차이 여유를 더한 상한
+    function maxPlausibleLane(elapsedSec) {
+      return Math.floor(RIVAL_MAX_LANES_PER_SEC * (elapsedSec + 1)) + 2;
+    }
+
+    // 정상 클라이언트로는 나올 수 없는 상태면 false (클라이언트 판정 구조의 최소 방어선)
+    // - 점수는 상대가 보고한 도달 시각 기준 상한 이내여야 하고, 그 도달 시각은 내 경과 시간보다 크게 앞설 수 없다
+    function isPlausibleRivalState(score, reachedAt, lane) {
+      if (Number.isFinite(score) && score > 0) {
+        if (!Number.isFinite(reachedAt) || reachedAt < 0 || reachedAt > versus.elapsed + RIVAL_CLOCK_SLACK_SEC) return false;
+        if (score > maxPlausibleLane(reachedAt)) return false;
+      }
+      if (Number.isFinite(lane) && Math.abs(lane) > maxPlausibleLane(versus.elapsed + RIVAL_CLOCK_SLACK_SEC)) return false;
+      return true;
+    }
+
+    // 반영했으면 true, 비정상 값이라 버렸으면 false
     function applyRivalState(msg) {
       const rival = versus.rival;
       const score = Math.floor(Number(msg.score));
-      if (Number.isFinite(score) && score >= rival.score && score < 100000) {
-        if (score > rival.score) rival.reachedAt = Math.max(0, Number(msg.reachedAt) || 0);
+      const reachedAt = Number(msg.reachedAt);
+      const lane = Math.round(Number(msg.lane));
+      if (!isPlausibleRivalState(score, reachedAt, lane)) {
+        online.rejectedStates++;
+        if (online.rejectedStates === 1) console.warn('[versus] 비정상 상대 상태 무시', { score, reachedAt, lane, elapsed: versus.elapsed });
+        return false;
+      }
+      if (Number.isFinite(score) && score >= rival.score) {
+        if (score > rival.score) rival.reachedAt = Math.min(reachedAt, VERSUS_DURATION);
         rival.score = score;
       }
-      if (versus.ghost && Number.isFinite(Number(msg.lane))) {
+      if (versus.ghost && Number.isFinite(lane)) {
         const t = versus.ghost.target;
-        t.lane = Math.round(Number(msg.lane));
-        t.col = Math.round(Number(msg.col)) || 0;
+        t.lane = lane;
+        t.col = Math.max(-GRID_COLS, Math.min(GRID_COLS, Math.round(Number(msg.col)) || 0));
         t.x = Number.isFinite(Number(msg.x)) ? Number(msg.x) : t.col * CELL_SIZE;
         t.onLog = !!msg.onLog;
       }
       if (msg.dead && !rival.dead) {
         onVersusRivalDeath(typeof msg.reason === 'string' ? msg.reason.slice(0, 40) : '');
       }
+      return true;
     }
 
     function sendVersusState(force = false) {
@@ -4732,7 +4796,7 @@
     function onlineTick(now) {
       if (versus.phase === 'running' || versus.phase === 'settling') sendVersusState();
 
-      // 내 쪽 연결이 오래 끊기면 이번 판은 무효 처리 (양쪽이 서로 부전승을 주장하지 않도록)
+      // 내 쪽 연결이 오래 끊기면 부전패 처리 (상대는 같은 시점에 내 presence 이탈로 부전승을 확정한다)
       if (versus.phase === 'running' && online.channel) {
         if (online.channel.state === 'joined') {
           online.disconnectedSince = 0;
@@ -4846,17 +4910,29 @@
     document.getElementById('vs-tab-online').addEventListener('click', () => setVersusTab('online'));
     document.getElementById('vs-close-btn').addEventListener('click', closeVersusModal);
 
+    // 로비·결과 화면의 난이도 버튼을 함께 갱신하고, 선택은 다음 방문까지 기억한다
+    function setBotDifficulty(diff) {
+      if (!BOT_DIFFICULTY[diff]) return;
+      versus.difficulty = diff;
+      localStorage.setItem('crossy_bot_difficulty', diff);
+      document.querySelectorAll('.vs-diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === diff));
+      if (versus.phase === 'finished' && versus.mode === 'bot') {
+        document.getElementById('vs-rematch-status').textContent = `[재대결]을 누르면 ${BOT_DIFFICULTY[diff].label} 봇과 새 맵에서 붙습니다`;
+      }
+    }
+
+    function botRivalName() {
+      return `봇(${(BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal).label})`;
+    }
+
     document.querySelectorAll('.vs-diff-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        versus.difficulty = btn.dataset.diff;
-        document.querySelectorAll('.vs-diff-btn').forEach(b => b.classList.toggle('active', b === btn));
-      });
+      btn.addEventListener('click', () => setBotDifficulty(btn.dataset.diff));
     });
+    setBotDifficulty(versus.difficulty);
 
     document.getElementById('vs-bot-start').addEventListener('click', () => {
-      const cfg = BOT_DIFFICULTY[versus.difficulty] || BOT_DIFFICULTY.normal;
       const rivalChar = selectedCharId === 'robot' ? 'chicken' : 'robot';
-      startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: `봇(${cfg.label})`, rivalCharId: rivalChar });
+      startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: botRivalName(), rivalCharId: rivalChar });
     });
 
     document.getElementById('vs-create-room').addEventListener('click', createOnlineRoom);
@@ -4876,7 +4952,7 @@
 
     document.getElementById('vs-rematch-btn').addEventListener('click', () => {
       if (versus.mode === 'bot') {
-        startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: versus.rival.name, rivalCharId: versus.rival.charId });
+        startVersusMatch({ mode: 'bot', seed: newSeed(), rivalName: botRivalName(), rivalCharId: versus.rival.charId });
         return;
       }
       if (!online.opponent) return;
@@ -5032,6 +5108,11 @@
         // 온라인: 장애물 시간이 레이스 시계(벽시계)와 같아야 "같은 시각 = 같은 맵"이 유지된다.
         // 프레임 지연·백그라운드 복귀로 뒤처진 만큼 작은 스텝으로 나눠 따라잡는다.
         let lag = versus.elapsed - laneManager.time;
+        if (lag * 1000 > ONLINE_LEAVE_GRACE_MS) {
+          // 백그라운드 전환·장시간 멈춤: 상대 화면에서는 이미 내가 멈춰 있었으므로 수십 초를 몰아서 시뮬레이션하지 않는다
+          finishVersus('disconnected');
+          lag = 0;
+        }
         while (lag > 1e-6) {
           const step = Math.min(lag, ONLINE_MAX_SUBSTEP);
           stepWorld(step);
