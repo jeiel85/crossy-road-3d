@@ -1208,15 +1208,15 @@
   <div id="ranking-modal" class="modal-overlay">
     <div class="modal-card" style="max-width: 460px;">
       <div class="modal-title">🏆 명예의 전당</div>
-      <div class="modal-subtitle" style="margin-bottom: 12px;">실시간 순위 경쟁 리더보드</div>
+      <div class="modal-subtitle" style="margin-bottom: 12px;">TOP 10 순위표</div>
 
-      <!-- 글로벌 / 로컬 탭 -->
+      <!-- 도전 기록(기본 기록 + 내 기록) / 로컬 탭 -->
       <div class="ranking-tabs">
-        <button id="tab-global" class="ranking-tab active">🌐 글로벌 실시간</button>
+        <button id="tab-global" class="ranking-tab active">🎯 도전 기록</button>
         <button id="tab-local" class="ranking-tab">📱 내 기기 기록</button>
       </div>
-      <div id="ranking-status" style="font-size: 11px; font-weight: 700; color: #16a34a; margin-bottom: 8px;">
-        🟢 서버리스 글로벌 랭킹 연동 완료
+      <div id="ranking-status" style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 8px;">
+        🎯 기본 도전 기록 + 내 기기 기록 · 온라인 동기화 없음
       </div>
 
       <div id="ranking-list" class="ranking-list"></div>
@@ -3207,6 +3207,7 @@
     class LeaderboardManager {
       constructor() {
         this.storageKey = 'crossy_leaderboard_v1';
+        // 'global' 보드는 서버와 동기화되지 않는다: 기본 도전 기록 + 이 기기에서 등록한 기록 (#3)
         this.currentTab = 'global'; // 'global' | 'local'
         this.board = this.loadLocal();
         this.globalBoard = this.loadGlobalInitial();
@@ -3329,7 +3330,7 @@
         if (tab === 'global') {
           tabGlobal.classList.add('active');
           tabLocal.classList.remove('active');
-          if (statusEl) statusEl.innerText = '🟢 서버리스 글로벌 랭킹 (전 세계 실시간)';
+          if (statusEl) statusEl.innerText = '🎯 기본 도전 기록 + 내 기기 기록 · 온라인 동기화 없음';
         } else {
           tabLocal.classList.add('active');
           tabGlobal.classList.remove('active');
