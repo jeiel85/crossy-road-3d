@@ -1,0 +1,31 @@
+{
+  "name": "Crossy Road 3D",
+  "short_name": "Crossy 3D",
+  "description": "길을 건너 최대한 멀리! 여러 캐릭터와 바이옴, 봇·온라인 대전을 지원하는 3D 길건너기 게임",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#73C9EA",
+  "theme_color": "#73C9EA",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
