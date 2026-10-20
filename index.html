@@ -1009,6 +1009,10 @@
 
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#73C9EA" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 </head>
 <body>
   <div id="desktop-sim-bar">
@@ -1061,6 +1065,9 @@
         <button id="mute-btn" class="glass-card" style="cursor: pointer; padding: 10px 14px; font-size: 18px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
           🔊
         </button>
+        <a id="github-link" class="btn-action" href="https://github.com/jeiel85/crossy-road-3d" target="_blank" rel="noopener noreferrer" aria-label="GitHub 저장소 (jeiel85/crossy-road-3d)" title="소스 코드 · GitHub" style="text-decoration:none; padding: 10px 12px;">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
       </div>
 
       <!-- 모바일 뷰 및 좁은 화면용 슬림 설정 토글 메뉴 (화면 가림 방지) -->
@@ -1098,6 +1105,10 @@
               <span class="m-icon">💻</span>
               <span class="m-label">PC 전체화면으로 복귀</span>
             </button>
+            <a class="mobile-menu-item" href="https://github.com/jeiel85/crossy-road-3d" target="_blank" rel="noopener noreferrer" aria-label="GitHub 저장소 (jeiel85/crossy-road-3d)" style="text-decoration:none;">
+              <span class="m-icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></span>
+              <span class="m-label">소스 코드 · GitHub</span>
+            </a>
           </div>
         </div>
       </div>
@@ -5222,5 +5233,29 @@
     window.addEventListener('resize', resizeRenderer);
   </script>
   </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => navigator.serviceWorker.ready)
+          .then((registration) => {
+            const worker = registration.active;
+            if (!worker) return;
+            // 첫 방문처럼 SW가 제어하기 전에 받은 같은 출처 자산(workerStart 0)을 SW에 알려
+            // 오프라인용으로 캐시하게 한다. SW를 거친 요청은 SW가 이미 캐시한다.
+            worker.postMessage({ type: 'CACHE_URLS', urls: [location.href] });
+            new PerformanceObserver((list) => {
+              const urls = list.getEntries()
+                .filter((entry) => (entry).workerStart === 0)
+                .map((entry) => entry.name);
+              if (urls.length) worker.postMessage({ type: 'CACHE_URLS', urls });
+            }).observe({ type: 'resource', buffered: true });
+          })
+          .catch((error) => {
+            console.warn('서비스워커 등록 실패:', error);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
